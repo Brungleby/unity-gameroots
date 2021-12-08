@@ -25,6 +25,8 @@ public class CharacterMovement : MonoBehaviour
         Implicit,
         [ InspectorName( "Automatic, Constant" ) ] [ Tooltip( "The character will always point to the last direction walked in, even if they are not walking." ) ]
         ImplicitConstant,
+        [ InspectorName( "Automatic, Match Camera" ) ] [ Tooltip( "The character will always point in the exact direction the camera is facing. Good for 1st person or tank controls." ) ]
+        ImplicitCamera,
     }
 
     private static float GRAVITY_SCALE_MULTIPLIER = 0.01f;
@@ -74,8 +76,13 @@ public class CharacterMovement : MonoBehaviour
         [ Tooltip( "Scale of gravity forces applied." ) ]
         public float GravityScale = 1.0f;
 
-        // [ Tooltip( "This is the amount of gravity applied to us just once when we hit the ground. A low value will make falling off ledges and slopes easier, and a high value will cause us to fall down." ) ]
-        // public float GroundedGravityStrength = 0.04f;
+        [ Min( 0 ) ] [ Tooltip( "This is the amount of gravity applied to us when we are on the ground." ) ] [ SerializeField ]
+        private float _GroundedGravityStrength = 2.5f;
+        public float GroundedGravityStrength {
+            get {
+                return _GroundedGravityStrength;
+            }
+        }
 
 
 
@@ -106,24 +113,20 @@ public class CharacterMovement : MonoBehaviour
         [ Space( 10 ) ]
 
         [ Tooltip( "Maximum speed we can walk, measured in m/s." ) ] [ SerializeField ]
-        private float _MaxWalkSpeed = 10.0f;
-        public float MaxWalkSpeed {
-            get {
-                return _MaxWalkSpeed;
-            }
-        }
+        public float GroundWalkingSpeed = 10.0f;
+
         [ Tooltip( "How quickly we speed up to reach MaxWalkSpeed." ) ] [ SerializeField ]
-        private float _WalkGroundAccel = 10.0f;
-        public float WalkGroundAccel {
+        private float _GroundWalkingAcceleration = 10.0f;
+        public float GroundWalkingAcceleration {
             get {
-                return _WalkGroundAccel * 0.01f;
+                return _GroundWalkingAcceleration * 0.01f;
             }
         }
         [ Tooltip( "How quickly we slow down to stop when not inputting movement." ) ] [ SerializeField ]
-        private float _WalkGroundDecel = 0.1f;
-        public float WalkGroundDecel {
+        private float _GroundBrakingDeceleration = 10.0f;
+        public float GroundBrakingDeceleration {
             get {
-                return _WalkGroundDecel;
+                return _GroundBrakingDeceleration;
             }
         }
         [ Range( 0.0f, 1.0f ) ] [ Tooltip( "Determines how strongly the character slide down slopes." ) ]
@@ -173,6 +176,13 @@ public class CharacterMovement : MonoBehaviour
 
         private CharacterController _Controller;
 
+        private float _groundCheckOffset;
+        public float GroundCheckOffset {
+            get {
+                return _groundCheckOffset;
+            }
+        }
+
         private Vector3 _velocity;
         private Vector3 _previousVelocity;
 
@@ -186,6 +196,8 @@ public class CharacterMovement : MonoBehaviour
 
         private float _targetYaw;
         private float _targetYawVelocity;
+
+        private bool _isMovingUpInAir;
 
         private bool _isHoldingJump;
         private float _whenJumped;
@@ -290,20 +302,16 @@ public class CharacterMovement : MonoBehaviour
                         switch ( _groundState )
                         {
                             case GroundMoveState.Grounded:
-                                OnLandedGround();
-                                _Controller.stepOffset = 0.3f;
+                                _OnLandedGround();
                                 break;
                             case GroundMoveState.Sloped:
                                 if ( EnableLandingOnSlope )
-                                    OnLandedGround();
+                                    _OnLandedGround();
                                 else
-                                    OnDetachedGround();
-                                    
-                                _Controller.stepOffset = 0.0f;
+                                    _OnDetachedGround();
                                 break;
                             case GroundMoveState.Airborne:
-                                OnLeftGround();
-                                _Controller.stepOffset = 0.0f;
+                                _OnLeftGround();
                                 break;
                         }
                     }
@@ -437,7 +445,7 @@ public class CharacterMovement : MonoBehaviour
             /// <summary>
             /// The XZ speed of the character along their current gravity plane. Set value has NOT yet been tested.
             /// </summary>
-            public Vector2 LateralSpeed
+            public Vector2 LateralVelocity
             {
                 get
                 {
@@ -446,6 +454,15 @@ public class CharacterMovement : MonoBehaviour
                 set
                 {
                     Velocity = Vector3.Scale( Velocity, GravityUp ) + Vector3.Scale( GravityLateralPlane, value.XYtoXZ() );
+                }
+            }
+            public float LateralSpeed
+            {
+                get {
+                    return Vector3.ProjectOnPlane( Velocity, GravityLateralPlane.normalized ).XZtoXY().magnitude;
+                }
+                set {
+                    Velocity = Vector3.Scale( Velocity, GravityUp ) + Vector3.Scale( GravityLateralPlane.normalized, LateralVelocity.XYtoXZ().normalized * value );
                 }
             }
             /// <summary>
@@ -460,13 +477,6 @@ public class CharacterMovement : MonoBehaviour
                 set
                 {
                     Velocity = Vector3.Scale( Velocity, GravityLateralPlane ) + GravityUp * value;
-                }
-            }
-            private float VerticalSpeedPrevious
-            {
-                get
-                {
-                    return Vector3.Dot( _previousVelocity, GravityUp );
                 }
             }
             /// <summary>
@@ -557,64 +567,64 @@ public class CharacterMovement : MonoBehaviour
 
     #endregion
 
-    #region Events
-
-        private void OnControllerColliderHit( ControllerColliderHit hit )
-        {
-            Vector3 plane;
-
-            float dot = Vector3.Dot( hit.moveDirection, -GravityUp );
-            float angle = Mathf.Acos( dot ) * Mathf.Rad2Deg;
-
-            bool isGroundAngle = angle < _Controller.slopeLimit;
-
-            print( angle );
-
-            // Prevents sliding down all slopes
-            if ( GroundState == GroundMoveState.Grounded && isGroundAngle )
-                plane = -GravityUp;
-            else
-                plane = hit.normal;
-
-            Velocity = Vector3.ProjectOnPlane( Velocity, plane );
-
-            OnHit( hit );
-        }
 
         /// <summary>
         /// This function is called when the character hit any object. If they are on the ground, this is constantly happening due to gravity.
         /// </summary>
         protected virtual void OnHit( ControllerColliderHit hit ) {}
+        void OnControllerColliderHit( ControllerColliderHit hit )
+        {
+            float dot = Vector3.Dot( hit.moveDirection, -GravityUp );
+            float angle = Mathf.Acos( dot ) * Mathf.Rad2Deg;
+
+            bool isGroundAngle = angle < _Controller.slopeLimit;
+            bool isOnSolidGround = IsGrounded && isGroundAngle;
+            
+            Velocity = Vector3.ProjectOnPlane( Velocity, isOnSolidGround ? GravityUp : hit.normal );
+            
+            if ( IsGrounded )
+                Velocity += GravityUp * GravityScale * -GroundedGravityStrength * Time.deltaTime;
+
+            OnHit( hit );
+        }
+
+    #region Events
 
         /// <summary>
         /// This function is called when the character touches the ground. This can be enabled or disabled for steep slopes.
         /// </summary>
-        protected virtual void OnLandedGround()
+        protected virtual void OnLandedGround() {}
+        void _OnLandedGround()
         {
             _jumpsMade = 0;
+            _Controller.stepOffset = GroundCheckOffset;
+
+            OnLandedGround();
         }
 
         /// <summary>
         /// This function is called when the character leaves the ground significantly, such as jumping into the air, or walking off a ledge. Includes a call for OnDetachedGround.
         /// </summary>
-        protected virtual void OnLeftGround()
+        protected virtual void OnLeftGround() {}
+        void _OnLeftGround()
         {
-            OnDetachedGround();
+            _OnDetachedGround();
         }
 
         /// <summary>
         /// This function is called when the character leaves the ground for any reason, no matter how minute.
         /// </summary>
-        protected virtual void OnDetachedGround()
+        protected virtual void OnDetachedGround() {}
+        void _OnDetachedGround()
         {
+            _Controller.stepOffset = 0f;
             _jumpsMade++;
         }
 
         protected virtual void OnReachedAirbornePeak() {}
         void _OnReachedAirbornePeak()
         {
-            print( "Peak" );
-            _Controller.stepOffset = 0.3f;
+            _isMovingUpInAir = false;
 
             OnReachedAirbornePeak();
         }
@@ -622,8 +632,7 @@ public class CharacterMovement : MonoBehaviour
         protected virtual void OnReachedAirborneTrough() {}
         void _OnReachedAirborneTrough()
         {
-            print( "Trough" );
-            _Controller.stepOffset = 0f;
+            _isMovingUpInAir = true;
 
             OnReachedAirborneTrough();
         }
@@ -638,6 +647,8 @@ public class CharacterMovement : MonoBehaviour
     protected virtual void Awake()
     {
         _Controller = GetComponent<CharacterController>();
+        _groundCheckOffset = _Controller.stepOffset;
+
         _targetYaw = transform.rotation.y;
     }
 
@@ -671,12 +682,10 @@ public class CharacterMovement : MonoBehaviour
 
             if ( !IsGrounded )
             {
-                if ( VerticalSpeedPrevious >= 0f && VerticalSpeed <= 0f )
+                if (  _isMovingUpInAir && VerticalSpeed <= 0f )
                     _OnReachedAirbornePeak();
-                if ( VerticalSpeedPrevious <= 0f && VerticalSpeed > 0f )
+                if ( !_isMovingUpInAir && VerticalSpeed >= 0f )
                     _OnReachedAirborneTrough();
-
-                // What i have learned: Step offset is dangerous. it causes you to get glued to ceilings you're not even touching. it might be reasonable to find a way to change the step offset the closer you are to a ceiling instead of trying to find a way to ignore it all together. (when i tried doing that, chaos ensued. i didn't try doing that during FixedUpdate, however.)
             }
             
         #endregion
@@ -686,6 +695,16 @@ public class CharacterMovement : MonoBehaviour
             UpdateForces();
 
         #endregion
+
+        #region Input Update
+             
+            _walkVector = GetCameraAdjustedInputVector( _rawWalkInputVector );
+
+            if ( IsInputtingWalk )
+                _lastValidWalkVector = _walkVector;
+        
+        #endregion
+
         #region Walk Update
 
             float walkPercentAccel = ( IsGrounded ? 1f : AirWalkPercent );
@@ -693,16 +712,20 @@ public class CharacterMovement : MonoBehaviour
 
             Vector3 walkVector;
 
+
             if ( GroundState == GroundMoveState.Sloped && !EnableSlopeWalk )
                 walkVector = Vector3.zero;
             else
                 walkVector = Vector3.ProjectOnPlane( WalkInputVector, GravityUp );
 
-            AddForce( walkVector * walkPercentAccel * WalkGroundAccel );
-            AddForce( -Vector3.Scale( Velocity, GravityLateralPlane ) * walkPercentDecel * WalkGroundDecel );
+            // if ( IsTouchingAnyGround )
+            //     walkVector = Vector3.ProjectOnPlane( walkVector, GroundNormal );
+
+            AddForce( walkVector * walkPercentAccel * GroundWalkingAcceleration );
+            AddForce( -Vector3.Scale( Velocity, GravityLateralPlane ) * walkPercentDecel * GroundBrakingDeceleration );
 
             // Limit the lateral speed to the Max Walk Speed.
-            Velocity = Vector3.ClampMagnitude( Vector3.Scale( Velocity, GravityLateralPlane ), MaxWalkSpeed * Time.deltaTime ) + GravityUp * VerticalSpeed;
+            Velocity = Vector3.ClampMagnitude( Vector3.Scale( Velocity, GravityLateralPlane ), GroundWalkingSpeed * Time.deltaTime ) + GravityUp * VerticalSpeed;
             
         #endregion
         #region Jump Update
@@ -712,65 +735,57 @@ public class CharacterMovement : MonoBehaviour
 
             if ( RotationStyle != RotationMode.Explicit )
             {
-                if ( IsInputtingWalk || RotationStyle == RotationMode.ImplicitConstant )
+                float rotation;
+
+                if ( RotationStyle == RotationMode.ImplicitCamera )
+                {
+                    rotation = Camera.transform.eulerAngles.y;
+                }
+                else if ( IsInputtingWalk || RotationStyle == RotationMode.ImplicitConstant )
                 {
                     _targetYaw = Mathf.Atan2( WalkYawTarget.x, WalkYawTarget.y ) * Mathf.Rad2Deg;
                     
                     float rotationDivisor = IsInputtingWalk ? Mathf.Pow( _rawWalkInputVector.magnitude, WalkRotationExp ) : 1f;
 
-                    float rotation = Mathf.SmoothDampAngle(
+                    rotation = Mathf.SmoothDampAngle(
                         transform.eulerAngles.y, _targetYaw, ref _targetYawVelocity,
                         WalkRotationTime / rotationDivisor
                     );
-
-                    transform.rotation = Quaternion.Euler( transform.eulerAngles.x, rotation, transform.eulerAngles.z );
                 }
+                else
+                    rotation = transform.eulerAngles.y;
+
+                transform.rotation = Quaternion.Euler( transform.eulerAngles.x, rotation, transform.eulerAngles.z );
             }
 
         #endregion
-
-        
-        // #region Velocity Check
-
-        //     RaycastHit velocityHit;
-        //     bool wasHit = Physics.CapsuleCast(
-        //         CapsuleBottomNoHemisphere, CapsuleTopNoHemisphere, _Controller.radius,
-        //         Velocity.normalized, out velocityHit, Velocity.magnitude,
-        //         GroundCheckLayers, QueryTriggerInteraction.Ignore
-        //     );
-
-        //     Vector3 plane;
-
-        //     float dot = Vector3.Dot( Velocity.normalized, -GravityUp );
-        //     float angle = Mathf.Acos( dot ) * Mathf.Rad2Deg;
-
-        //     bool isGroundAngle = angle < _Controller.slopeLimit;
-
-        //     print( angle );
-
-        //     // Prevents sliding down all slopes
-        //     if ( GroundState == GroundMoveState.Grounded && isGroundAngle )
-        //         plane = -GravityUp;
-        //     else
-        //         plane = velocityHit.normal;
-
-        //     Velocity = Vector3.ProjectOnPlane( Velocity, plane );
-
-        //     OnHit( velocityHit );
-
-        // #endregion
         
         _Controller.Move( Velocity );
         _previousVelocity = Velocity;
     }
 
+    protected virtual void UpdateForces()
+    {
+        // if ( !IsGrounded )
+            AddForce( GravityForce );
+
+        // if ( GroundState == GroundMoveState.Airborne )
+        // {
+        //     AddForce( GravityForce );
+        // }
+        // else if ( GroundState == GroundMoveState.Sloped )
+        // {
+        //     AddForce( SlopeNormal * GravityForce.magnitude * SlopeSlideStrength );
+        // }
+    }
+    
     protected virtual RaycastHit GroundCheck()
     {
         RaycastHit result;
 
         // Physics.SphereCast(
         //     CapsuleBottomNoHemisphere, _Controller.radius,
-        //     -transform.up, out result, _Controller.stepOffset, GroundCheckLayers,
+        //     -transform.up, out result, _stepOffset, GroundCheckLayers,
         //     QueryTriggerInteraction.Ignore
         // );
 
@@ -788,24 +803,11 @@ public class CharacterMovement : MonoBehaviour
 
         Physics.CapsuleCast(
             groundPoint1, groundPoint2, _Controller.radius,
-            -GravityUp, out result, _Controller.stepOffset,
+            -GravityUp, out result, GroundCheckOffset,
             GroundCheckLayers, QueryTriggerInteraction.Ignore
         );
 
         return result;
-    }
-    protected virtual void UpdateForces()
-    {
-        AddForce( GravityForce );
-
-        // if ( GroundState == GroundMoveState.Airborne )
-        // {
-        //     // AddForce( GravityForce );
-        // }
-        // else if ( GroundState == GroundMoveState.Sloped )
-        // {
-        //     AddForce( SlopeNormal * GravityForce.magnitude * SlopeSlideStrength );
-        // }
     }
 
     #region Basic Physics
@@ -888,11 +890,6 @@ public class CharacterMovement : MonoBehaviour
         public void AddWalkInput( InputAction.CallbackContext context )
         {
             _rawWalkInputVector = context.ReadValue<Vector2>();
-
-            _walkVector = GetCameraAdjustedWalkVector( _rawWalkInputVector );
-
-            if ( IsInputtingWalk )
-                _lastValidWalkVector = _walkVector;
         }
 
         public void JumpInput( InputAction.CallbackContext context )
@@ -910,7 +907,7 @@ public class CharacterMovement : MonoBehaviour
             }
         }
 
-        protected Vector3 GetCameraAdjustedWalkVector( Vector2 input )
+        protected Vector3 GetCameraAdjustedInputVector( Vector2 input )
         {
             return ConvertInputWithTransform( CameraTransform, input );
         }
@@ -934,7 +931,7 @@ public class CharacterMovement : MonoBehaviour
             {
                 Gizmos.color = Color.white;
                 Gizmos.matrix = Matrix4x4.TRS(
-                    transform.position + transform.forward * ( _Controller.radius + 0.8f ),
+                    CapsuleBottom + ( transform.up * GroundCheckOffset ) + transform.forward * ( _Controller.radius + 0.8f ),
                     Quaternion.LookRotation( -transform.forward, transform.up ),
                     Vector3.one
                 );
@@ -979,8 +976,8 @@ public class CharacterMovement : MonoBehaviour
                 bool completelyUpright = upFactor >= 0.99f;
                 bool completelyUpsidedown = upFactor <= -0.99f;
 
-                Vector3 groundPoint1 = CapsuleBottomNoHemisphere - GravityUp * _Controller.stepOffset;
-                Vector3 groundPoint2 = CapsuleTopNoHemisphere    - GravityUp * _Controller.stepOffset;
+                Vector3 groundPoint1 = CapsuleBottomNoHemisphere - GravityUp * GroundCheckOffset;
+                Vector3 groundPoint2 = CapsuleTopNoHemisphere    - GravityUp * GroundCheckOffset;
 
                 if ( !completelyUpsidedown )
                     Gizmos.DrawSphere( groundPoint1, _Controller.radius );
