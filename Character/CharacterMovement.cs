@@ -47,8 +47,8 @@ public class CharacterMovement : MonoBehaviour
             }
             public virtual Camera Camera {
                 get {
-                    if ( _CharacterCamera )
-                        return _CharacterCamera;
+                    if ( CharacterCamera )
+                        return CharacterCamera;
                     else
                         return Camera.main;
                 }
