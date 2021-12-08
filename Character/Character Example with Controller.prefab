@@ -146,6 +146,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 46ff59b8f9b56f242a8f593c19dce028, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _CharacterCamera: {fileID: 2800900791429676594}
   GroundCheckLayers:
     serializedVersion: 2
     m_Bits: 1
@@ -154,8 +155,7 @@ MonoBehaviour:
   RotationStyle: 1
   WalkRotationTime: 0.05
   WalkRotationExp: 0.5
-  CameraTransform: {fileID: 5718691521567030599}
-  EnableSlopeWalk: 1
+  EnableSlopeWalk: 0
   EnableSlopeSlide: 1
   _MaxWalkSpeed: 10
   _WalkGroundAccel: 10

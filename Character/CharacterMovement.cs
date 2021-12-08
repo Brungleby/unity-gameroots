@@ -33,13 +33,41 @@ public class CharacterMovement : MonoBehaviour
 
     #region Exposed Properties
 
+        [ Header( "Required Components" ) ]
+        #region
+
+            [ Tooltip( "The main camera that is attached to this character." ) ] [ SerializeField ]
+            protected Camera _CharacterCamera;
+            public Camera CharacterCamera {
+                get {
+                    return _CharacterCamera;
+                }
+            }
+            public virtual Camera Camera {
+                get {
+                    if ( _CharacterCamera )
+                        return _CharacterCamera;
+                    else
+                        return Camera.main;
+                }
+            }
+            public Transform CameraTransform {
+                get {
+                    return Camera.transform;
+                }
+            }
+        
+        #endregion
+
         [ Header( "Collision" ) ]
+        #region
 
-        [ SerializeField ] [ Tooltip( "Determines which layers to check for ground. It is recommended that you set this gameObject's layer to something other than these layers, to prevent colliding with self." ) ]
-        private LayerMask GroundCheckLayers;
-        [ Tooltip( "If enabled, the character's OnLandedGround function will trigger even when landing on steep slopes, allowing them to jump from such slopes." ) ]
-        public bool EnableLandingOnSlope = false;
+            [ SerializeField ] [ Tooltip( "Determines which layers to check for ground. It is recommended that you set this gameObject's layer to something other than these layers, to prevent colliding with self." ) ]
+            private LayerMask GroundCheckLayers;
+            [ Tooltip( "If enabled, the character's OnLandedGround function will trigger even when landing on steep slopes, allowing them to jump from such slopes." ) ]
+            public bool EnableLandingOnSlope = false;
 
+        #endregion
 
         [ Header( "Physics" ) ]
 
@@ -67,7 +95,6 @@ public class CharacterMovement : MonoBehaviour
 
         [ Header( "Walk Movement" ) ]
 
-        public Transform CameraTransform;
 
         [ Space( 10 ) ]
 
@@ -264,15 +291,19 @@ public class CharacterMovement : MonoBehaviour
                         {
                             case GroundMoveState.Grounded:
                                 OnLandedGround();
+                                _Controller.stepOffset = 0.3f;
                                 break;
                             case GroundMoveState.Sloped:
                                 if ( EnableLandingOnSlope )
                                     OnLandedGround();
                                 else
                                     OnDetachedGround();
+                                    
+                                _Controller.stepOffset = 0.0f;
                                 break;
                             case GroundMoveState.Airborne:
                                 OnLeftGround();
+                                _Controller.stepOffset = 0.0f;
                                 break;
                         }
                     }
@@ -528,14 +559,38 @@ public class CharacterMovement : MonoBehaviour
 
     #region Events
 
+        private void OnControllerColliderHit( ControllerColliderHit hit )
+        {
+            Vector3 plane;
+
+            float dot = Vector3.Dot( hit.moveDirection, -GravityUp );
+            float angle = Mathf.Acos( dot ) * Mathf.Rad2Deg;
+
+            bool isGroundAngle = angle < _Controller.slopeLimit;
+
+            print( angle );
+
+            // Prevents sliding down all slopes
+            if ( GroundState == GroundMoveState.Grounded && isGroundAngle )
+                plane = -GravityUp;
+            else
+                plane = hit.normal;
+
+            Velocity = Vector3.ProjectOnPlane( Velocity, plane );
+
+            OnHit( hit );
+        }
+
+        /// <summary>
+        /// This function is called when the character hit any object. If they are on the ground, this is constantly happening due to gravity.
+        /// </summary>
+        protected virtual void OnHit( ControllerColliderHit hit ) {}
+
         /// <summary>
         /// This function is called when the character touches the ground. This can be enabled or disabled for steep slopes.
         /// </summary>
         protected virtual void OnLandedGround()
         {
-            // Set our vertical velocity to a constant rate.
-            // VerticalSpeed = -GroundedGravityStrength;
-
             _jumpsMade = 0;
         }
 
@@ -544,9 +599,6 @@ public class CharacterMovement : MonoBehaviour
         /// </summary>
         protected virtual void OnLeftGround()
         {
-            // Set the vertical velocity to zero.
-            VerticalSpeed = Mathf.Max( VerticalSpeed, 0f );
-
             OnDetachedGround();
         }
 
@@ -558,7 +610,23 @@ public class CharacterMovement : MonoBehaviour
             _jumpsMade++;
         }
 
-        protected virtual void OnReachedAirborneApex() {}
+        protected virtual void OnReachedAirbornePeak() {}
+        void _OnReachedAirbornePeak()
+        {
+            print( "Peak" );
+            _Controller.stepOffset = 0.3f;
+
+            OnReachedAirbornePeak();
+        }
+        
+        protected virtual void OnReachedAirborneTrough() {}
+        void _OnReachedAirborneTrough()
+        {
+            print( "Trough" );
+            _Controller.stepOffset = 0f;
+
+            OnReachedAirborneTrough();
+        }
     
     #endregion
     
@@ -598,6 +666,21 @@ public class CharacterMovement : MonoBehaviour
             }
 
         #endregion
+
+        #region Airborne Update
+
+            if ( !IsGrounded )
+            {
+                if ( VerticalSpeedPrevious >= 0f && VerticalSpeed <= 0f )
+                    _OnReachedAirbornePeak();
+                if ( VerticalSpeedPrevious <= 0f && VerticalSpeed > 0f )
+                    _OnReachedAirborneTrough();
+
+                // What i have learned: Step offset is dangerous. it causes you to get glued to ceilings you're not even touching. it might be reasonable to find a way to change the step offset the closer you are to a ceiling instead of trying to find a way to ignore it all together. (when i tried doing that, chaos ensued. i didn't try doing that during FixedUpdate, however.)
+            }
+            
+        #endregion
+
         #region Forces Update
 
             UpdateForces();
@@ -646,10 +729,39 @@ public class CharacterMovement : MonoBehaviour
 
         #endregion
 
+        
+        // #region Velocity Check
+
+        //     RaycastHit velocityHit;
+        //     bool wasHit = Physics.CapsuleCast(
+        //         CapsuleBottomNoHemisphere, CapsuleTopNoHemisphere, _Controller.radius,
+        //         Velocity.normalized, out velocityHit, Velocity.magnitude,
+        //         GroundCheckLayers, QueryTriggerInteraction.Ignore
+        //     );
+
+        //     Vector3 plane;
+
+        //     float dot = Vector3.Dot( Velocity.normalized, -GravityUp );
+        //     float angle = Mathf.Acos( dot ) * Mathf.Rad2Deg;
+
+        //     bool isGroundAngle = angle < _Controller.slopeLimit;
+
+        //     print( angle );
+
+        //     // Prevents sliding down all slopes
+        //     if ( GroundState == GroundMoveState.Grounded && isGroundAngle )
+        //         plane = -GravityUp;
+        //     else
+        //         plane = velocityHit.normal;
+
+        //     Velocity = Vector3.ProjectOnPlane( Velocity, plane );
+
+        //     OnHit( velocityHit );
+
+        // #endregion
+        
         _Controller.Move( Velocity );
         _previousVelocity = Velocity;
-
-        print( _walkVector );
     }
 
     protected virtual RaycastHit GroundCheck()
@@ -684,81 +796,92 @@ public class CharacterMovement : MonoBehaviour
     }
     protected virtual void UpdateForces()
     {
-        if ( GroundState == GroundMoveState.Airborne )
-        {
-            AddForce( GravityForce );
-            
-            if ( VerticalSpeedPrevious > 0f && VerticalSpeed <= 0f )
-                OnReachedAirborneApex();
-        }
-        else if ( GroundState == GroundMoveState.Sloped )
-        {
-            AddForce( SlopeNormal * GravityForce.magnitude * SlopeSlideStrength );
-        }
+        AddForce( GravityForce );
+
+        // if ( GroundState == GroundMoveState.Airborne )
+        // {
+        //     // AddForce( GravityForce );
+        // }
+        // else if ( GroundState == GroundMoveState.Sloped )
+        // {
+        //     AddForce( SlopeNormal * GravityForce.magnitude * SlopeSlideStrength );
+        // }
     }
 
-    protected bool TryStartJump()
-    {
-        if ( CanJump )
-        {
-            Jump();
-            return true;
-        }
-
-        return false;
-    }
-
-    protected bool TryJumpEnd()
-    {
-        if ( _isHoldingJump )
-        {
-            JumpEnd();
-            return true;
-        }
-
-        return false;
-    }
-
-    public virtual void Jump()
-    {
-        VerticalSpeed = 0f;
-
-        Vector3 jumpNormal;
-        
-        switch ( GroundState )
-        {
-            case GroundMoveState.Grounded:
-                jumpNormal = Vector3.LerpUnclamped( GravityUp, GroundNormal, GroundedSlopeJumpBias ).normalized;
-                break;
-            case GroundMoveState.Sloped:
-                jumpNormal = Vector3.LerpUnclamped( GravityUp, GroundNormal, SteepSlopeJumpBias ).normalized;
-                break;
-            default:
-                jumpNormal = GravityUp;
-                break;
-        }
-
-        AddImpulse( jumpNormal * JumpStrength );
-
-        _isHoldingJump = true;
-        
-        _whenJumped = Time.time;
-        _jumpsMade++;
-    }
+    #region Basic Physics
     
-    public virtual void JumpEnd()
-    {
-        _isHoldingJump = false;
-    }
+        public float SpeedInSpecifiedDirection( Vector3 normal )
+        {
+            return Vector3.Dot( Velocity.normalized, normal.normalized ) * Speed;
+        }
 
-    public void AddImpulse( Vector3 velocity )
-    {
-        Velocity += velocity;
-    }
-    public void AddForce( Vector3 velocity )
-    {
-        Velocity += velocity * Time.deltaTime;
-    }
+        public void AddImpulse( Vector3 velocity )
+        {
+            Velocity += velocity;
+        }
+        public void AddForce( Vector3 velocity )
+        {
+            Velocity += velocity * Time.deltaTime;
+        }
+
+    #endregion
+
+    #region Jump Input
+
+        protected bool TryStartJump()
+        {
+            if ( CanJump )
+            {
+                Jump();
+                return true;
+            }
+
+            return false;
+        }
+        protected bool TryJumpEnd()
+        {
+            if ( _isHoldingJump )
+            {
+                JumpEnd();
+                return true;
+            }
+
+            return false;
+        }
+
+        public virtual void Jump()
+        {
+            VerticalSpeed = 0f;
+
+            Vector3 jumpNormal;
+            
+            switch ( GroundState )
+            {
+                case GroundMoveState.Grounded:
+                    jumpNormal = Vector3.LerpUnclamped( GravityUp, GroundNormal, GroundedSlopeJumpBias ).normalized;
+                    break;
+                case GroundMoveState.Sloped:
+                    jumpNormal = Vector3.LerpUnclamped( GravityUp, GroundNormal, SteepSlopeJumpBias ).normalized;
+                    break;
+                default:
+                    jumpNormal = GravityUp;
+                    break;
+            }
+
+            AddImpulse( jumpNormal * JumpStrength );
+
+            _isHoldingJump = true;
+            
+            _whenJumped = Time.time;
+            _jumpsMade++;
+        }
+        
+        public virtual void JumpEnd()
+        {
+            _isHoldingJump = false;
+        }
+        
+    #endregion
 
     #region Input Methods
 
@@ -789,8 +912,12 @@ public class CharacterMovement : MonoBehaviour
 
         protected Vector3 GetCameraAdjustedWalkVector( Vector2 input )
         {
-            Vector3 right = CameraTransform.right;
-            Vector3 forward = Vector3.Scale( CameraTransform.forward, Vector3.up.Plane() ).normalized;
+            return ConvertInputWithTransform( CameraTransform, input );
+        }
+        protected static Vector3 ConvertInputWithTransform( Transform transform, Vector2 input )
+        {
+            Vector3 right = transform.right;
+            Vector3 forward = Vector3.Scale( transform.forward, Vector3.up.Plane() ).normalized;
 
             Vector3 composite = right * input.x + forward * input.y;
 
@@ -818,7 +945,7 @@ public class CharacterMovement : MonoBehaviour
             if ( DrawVelocity )
             {
                 Gizmos.color = Color.blue;
-                Gizmos.DrawRay( transform.position, _Controller.velocity * Time.deltaTime * 40.0f );
+                Gizmos.DrawRay( transform.position, Velocity * Time.deltaTime * 50000.0f );
             }
             
             if ( DrawInput )
