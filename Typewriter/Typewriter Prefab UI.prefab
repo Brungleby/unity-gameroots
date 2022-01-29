@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 4509403954752413937}
   - component: {fileID: 6877008087342146619}
   - component: {fileID: 8751219606248727018}
-  - component: {fileID: 9127303450794715917}
   - component: {fileID: 2043257714297722298}
   - component: {fileID: 3185543148818363493}
   - component: {fileID: 2005920554528234130}
@@ -138,20 +137,6 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
---- !u!114 &9127303450794715917
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1141561063255149897}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8500e7fe853f5124692840f6c7da2d66, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Typewriter: {fileID: 2043257714297722298}
-  Playbook: {fileID: 0}
 --- !u!114 &2043257714297722298
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -164,6 +149,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cf35fe76e2cf5694c876ec0a3362997b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  OnFinishedPrint:
+    m_PersistentCalls:
+      m_Calls: []
   TMPObject: {fileID: 8751219606248727018}
   Audio: {fileID: 2005920554528234130}
   SoundPoolPlayer: {fileID: 3185543148818363493}
