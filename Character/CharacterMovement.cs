@@ -17,16 +17,26 @@ public class CharacterMovement : MonoBehaviour
         Grounded,
     }
 
+    // private enum RotationMode
+    // {
+    //     [ InspectorName( "Custom" ) ] [ Tooltip( "Rotation input is reserved for custom rotation controls." ) ]
+    //     Explicit,
+    //     [ InspectorName( "First Person" ) ] [ Tooltip( "Only rotation input X is used to rotate the player's ya. Ideal for first-person controls." ) ]
+    //     ExplicitTransfer,
+    //     [ InspectorName( "Third Person, Standard" ) ] [ Tooltip( "Rotation input is discarded. The character will try to rotate towards the last direction walked in, but will only be able to do so if we are inputting walk movement. Good for 3rd person." ) ]
+    //     Implicit,
+    //     [ InspectorName( "Third Person, Constant" ) ] [ Tooltip( "The character will always point to the last direction walked in, even if they are not walking." ) ]
+    //     ImplicitConstant,
+    //     [ InspectorName( "Third Person, Copy Camera" ) ] [ Tooltip( "The character will always point in the exact direction the camera is facing. Good for 1st person or tank controls." ) ]
+    //     ImplicitCamera,
+    // }
+
     private enum RotationMode
     {
-        [ InspectorName( "Manual" ) ] [ Tooltip( "The character will not automatically rotate AND will strafe. Good for 1st person." ) ]
-        Explicit,
-        [ InspectorName( "Automatic, Only When Walking" ) ] [ Tooltip( "The character will try to rotate towards the last direction walked in, but will only be able to do so if we are inputting walk movement. Good for 3rd person." ) ]
-        Implicit,
-        [ InspectorName( "Automatic, Constant" ) ] [ Tooltip( "The character will always point to the last direction walked in, even if they are not walking." ) ]
-        ImplicitConstant,
-        [ InspectorName( "Automatic, Match Camera" ) ] [ Tooltip( "The character will always point in the exact direction the camera is facing. Good for 1st person or tank controls." ) ]
-        ImplicitCamera,
+        [ Tooltip( "Rotation yaw is derived from the CharacterCamera Component. Make sure to disable the X axis in the CharacterCamera!" ) ]
+        FirstPerson,
+        [ Tooltip( "Rotation input is transferred to the camera. Character rotation is determined by gravity and movement direction." ) ]
+        ThirdPerson,
     }
 
     private static float GRAVITY_SCALE_MULTIPLIER = 0.01f;
@@ -65,7 +75,7 @@ public class CharacterMovement : MonoBehaviour
         #region
 
             [ SerializeField ] [ Tooltip( "Determines which layers to check for ground. It is recommended that you set this gameObject's layer to something other than these layers, to prevent colliding with self." ) ]
-            private LayerMask GroundCheckLayers;
+            protected LayerMask GroundCheckLayers;
             [ Tooltip( "If enabled, the character's OnLandedGround function will trigger even when landing on steep slopes, allowing them to jump from such slopes." ) ]
             public bool EnableLandingOnSlope = false;
 
@@ -88,8 +98,12 @@ public class CharacterMovement : MonoBehaviour
 
         [ Header( "Rotation" ) ]
 
-        [ SerializeField ] [ Tooltip( "Determines how this character's yaw rotation is controlled." ) ]
-        private RotationMode RotationStyle = RotationMode.Implicit;
+        [ InspectorName( "Enable Rotation" ) ] [ Tooltip( "If enabled, the character will rotate using the HandleRotation() method. Otherwise, rotation cannot be controlled using input." ) ] [ SerializeField ]
+        private bool EnableRotation = true;
+
+        [ SerializeField ] [ Tooltip( "Determines how this character's yaw rotation is controlled. When using a custom HandleRotation() method, this field is ignored." ) ]
+        private RotationMode RotationStyle = RotationMode.FirstPerson;
+        
         
         [ Space( 10 ) ]
         
@@ -174,7 +188,7 @@ public class CharacterMovement : MonoBehaviour
     
     #region Private Variables
 
-        private CharacterController _Controller;
+        protected CharacterController _Controller;
 
         private float _groundCheckOffset;
         public float GroundCheckOffset {
@@ -193,6 +207,9 @@ public class CharacterMovement : MonoBehaviour
         private Vector2 _rawWalkInputVector;
         private Vector3 _walkVector;
         private Vector3 _lastValidWalkVector;
+
+        private Vector2 _rawRotateInputVector;
+        private Vector3 _rotateVector;
 
         private float _targetYaw;
         private float _targetYawVelocity;
@@ -493,6 +510,13 @@ public class CharacterMovement : MonoBehaviour
                     Velocity = Velocity.normalized * value;
                 }
             }
+            protected virtual float ContextualGroundWalkMultiplier
+            {
+                get
+                {
+                    return 1f;
+                }
+            }
 
         #endregion
         
@@ -511,7 +535,7 @@ public class CharacterMovement : MonoBehaviour
             /// <summary>
             /// The Vector3 describing the direction in which we are inputting walking on the ground. This gets complicated when considering camera movement and gravity changing.
             /// </summary>
-            public Vector3 WalkInputVector {
+            public Vector3 WalkVector {
                 get {
                     return _walkVector;
                 }
@@ -528,8 +552,8 @@ public class CharacterMovement : MonoBehaviour
             {
                 get
                 {
-                    float x = Vector3.Dot( transform.right, WalkInputVector );
-                    float y = Vector3.Dot( transform.forward, WalkInputVector );
+                    float x = Vector3.Dot( transform.right, WalkVector );
+                    float y = Vector3.Dot( transform.forward, WalkVector );
 
                     Vector2 result = new Vector2( x, y );
                     return result.normalized;
@@ -540,12 +564,26 @@ public class CharacterMovement : MonoBehaviour
                 get
                 {
                     if ( IsInputtingWalk )
-                        return WalkInputVector.XZtoXY().normalized;
+                        return WalkVector.XZtoXY().normalized;
                     else
                         return LastValidWalkInputVector.XZtoXY().normalized;
                 }
             }
 
+        #endregion
+        #region Rotate Input
+ 
+            public bool IsInputtingRotate {
+                get {
+                    return _rawRotateInputVector.magnitude > 0f;
+                }
+            }
+            public Vector3 RotateVector {
+                get {
+                    return _rotateVector;
+                }
+            }
+            
         #endregion
         #region Jump Input
 
@@ -561,7 +599,7 @@ public class CharacterMovement : MonoBehaviour
 
         public bool IsStrafing {
             get {
-                return RotationStyle == RotationMode.Explicit;
+                return false;
             }
         }
 
@@ -696,7 +734,7 @@ public class CharacterMovement : MonoBehaviour
 
         #endregion
 
-        #region Input Update
+        #region Walk Input Update
              
             _walkVector = GetCameraAdjustedInputVector( _rawWalkInputVector );
 
@@ -708,7 +746,7 @@ public class CharacterMovement : MonoBehaviour
         #region Walk Update
 
             float walkPercentAccel = ( IsGrounded ? 1f : AirWalkPercent );
-            float walkPercentDecel = Mathf.Clamp01( ( IsGrounded ? 1f : 0f ) - WalkInputVector.magnitude );
+            float walkPercentDecel = Mathf.Clamp01( ( IsGrounded ? 1f : 0f ) - WalkVector.magnitude );
 
             Vector3 walkVector;
 
@@ -716,7 +754,7 @@ public class CharacterMovement : MonoBehaviour
             if ( GroundState == GroundMoveState.Sloped && !EnableSlopeWalk )
                 walkVector = Vector3.zero;
             else
-                walkVector = Vector3.ProjectOnPlane( WalkInputVector, GravityUp );
+                walkVector = Vector3.ProjectOnPlane( WalkVector, GravityUp );
 
             // if ( IsTouchingAnyGround )
             //     walkVector = Vector3.ProjectOnPlane( walkVector, GroundNormal );
@@ -725,69 +763,65 @@ public class CharacterMovement : MonoBehaviour
             AddForce( -Vector3.Scale( Velocity, GravityLateralPlane ) * walkPercentDecel * GroundBrakingDeceleration );
 
             // Limit the lateral speed to the Max Walk Speed.
-            Velocity = Vector3.ClampMagnitude( Vector3.Scale( Velocity, GravityLateralPlane ), GroundWalkingSpeed * Time.deltaTime ) + GravityUp * VerticalSpeed;
-            
-        #endregion
-        #region Jump Update
+            Velocity = Vector3.ClampMagnitude( Vector3.Scale( Velocity, GravityLateralPlane ), GroundWalkingSpeed * ContextualGroundWalkMultiplier * Time.deltaTime ) + GravityUp * VerticalSpeed;
             
         #endregion
         #region Rotation Update
 
-            if ( RotationStyle != RotationMode.Explicit )
+            if ( EnableRotation )
             {
-                float rotation;
-
-                if ( RotationStyle == RotationMode.ImplicitCamera )
-                {
-                    rotation = Camera.transform.eulerAngles.y;
-                }
-                else if ( IsInputtingWalk || RotationStyle == RotationMode.ImplicitConstant )
-                {
-                    _targetYaw = Mathf.Atan2( WalkYawTarget.x, WalkYawTarget.y ) * Mathf.Rad2Deg;
-                    
-                    float rotationDivisor = IsInputtingWalk ? Mathf.Pow( _rawWalkInputVector.magnitude, WalkRotationExp ) : 1f;
-
-                    rotation = Mathf.SmoothDampAngle(
-                        transform.eulerAngles.y, _targetYaw, ref _targetYawVelocity,
-                        WalkRotationTime / rotationDivisor
-                    );
-                }
-                else
-                    rotation = transform.eulerAngles.y;
-
-                transform.rotation = Quaternion.Euler( transform.eulerAngles.x, rotation, transform.eulerAngles.z );
+                HandleRotation( _rawRotateInputVector );
             }
 
         #endregion
-        
+        #region Jump Update
+            
+        #endregion
+
         _Controller.Move( Velocity );
         _previousVelocity = Velocity;
     }
 
     protected virtual void UpdateForces()
     {
-        // if ( !IsGrounded )
-            AddForce( GravityForce );
+        AddForce( GravityForce );
+    }
 
-        // if ( GroundState == GroundMoveState.Airborne )
-        // {
-        //     AddForce( GravityForce );
-        // }
-        // else if ( GroundState == GroundMoveState.Sloped )
-        // {
-        //     AddForce( SlopeNormal * GravityForce.magnitude * SlopeSlideStrength );
-        // }
+    protected virtual void HandleRotation( Vector2 input )
+    {
+        _rotateVector = GetCameraAdjustedInputVector( _rawRotateInputVector );
+
+        
+        switch ( RotationStyle )
+        {
+            case RotationMode.FirstPerson:
+
+                CharacterCamera camera = CharacterCamera.GetComponent<CharacterCamera>();
+
+                Quaternion target = Quaternion.Euler( transform.eulerAngles.x, camera.Rotation.x, transform.eulerAngles.z );
+
+                transform.rotation = Quaternion.LerpUnclamped( transform.rotation, target, camera.DampingSpeed * Time.deltaTime );
+
+            break;
+            case RotationMode.ThirdPerson:
+
+                _targetYaw = Mathf.Atan2( WalkYawTarget.x, WalkYawTarget.y ) * Mathf.Rad2Deg;
+
+                float yawSpeed = IsInputtingWalk ? Mathf.Pow( _rawWalkInputVector.magnitude, WalkRotationExp ) : 1f;
+                float yaw = Mathf.SmoothDampAngle(
+                    transform.eulerAngles.y, _targetYaw, ref _targetYawVelocity,
+                    ( 1f / yawSpeed ) * ( WalkRotationTime )
+                );
+
+                transform.rotation = Quaternion.Euler( transform.eulerAngles.x, yaw, transform.eulerAngles.z );
+            
+            break;
+        }
     }
     
     protected virtual RaycastHit GroundCheck()
     {
         RaycastHit result;
-
-        // Physics.SphereCast(
-        //     CapsuleBottomNoHemisphere, _Controller.radius,
-        //     -transform.up, out result, _stepOffset, GroundCheckLayers,
-        //     QueryTriggerInteraction.Ignore
-        // );
 
         float upFactor = Vector3.Dot( GravityUp, transform.up );
         bool completelyUpright = upFactor >= 0.99f;
@@ -892,6 +926,11 @@ public class CharacterMovement : MonoBehaviour
             _rawWalkInputVector = context.ReadValue<Vector2>();
         }
 
+        public void AddRotateInput( InputAction.CallbackContext context )
+        {
+            _rawRotateInputVector = context.ReadValue<Vector2>();
+        }
+
         public void JumpInput( InputAction.CallbackContext context )
         {
             if ( EnableJump )
@@ -948,7 +987,7 @@ public class CharacterMovement : MonoBehaviour
             if ( DrawInput )
             {
                 Gizmos.color = Color.white;
-                Gizmos.DrawRay( transform.position, WalkInputVector );
+                Gizmos.DrawRay( transform.position, WalkVector );
             }
 
             if ( DrawGroundState )
