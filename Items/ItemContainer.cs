@@ -7,6 +7,33 @@ using UnityEngine;
 /// </summary>
 public abstract class ItemContainer<T> : MonoBehaviour, ICollection<T>
 {
+    #region Abstract Methods
+
+        public abstract int TotalItems { get; }
+
+        /// <param name="exclusive">
+        /// If set to true, return only items that contain ALL filters. If false, return all items that contain ANY filters.
+        /// </param>
+        public abstract List<T> GetOrderedList( string[] filters, bool exclusive = false );
+        
+        public abstract bool CanAddSingleItem( Item item );
+        public abstract void AddSingleItem( Item item );
+        public abstract bool ContainsAny( Item item );
+        public abstract void RemoveSingleItem( Item item );
+
+    #endregion
+
+    public class ContainerException : UnityException
+    {
+        public ContainerException()
+        {
+            
+        }
+    }
+
+    [ Min( -1 ) ] [ Tooltip( "The maximum number of entries that can exist in this container. Set to -1 for an infinite size." ) ]
+    public int Capacity = -1;
+
     private List<T> _Contents;
 
     public bool IsEmpty {
@@ -16,14 +43,12 @@ public abstract class ItemContainer<T> : MonoBehaviour, ICollection<T>
     }
     public virtual bool IsFull {
         get {
-            return false;
+            if ( Capacity < 0 )
+                return false;
+            return Count >= Capacity;
         }
     }
 
-    /// <param name="exclusive">
-    /// If set to true, return only items that contain ALL filters. If false, return all items that contain ANY filters.
-    /// </param>
-    public abstract List<T> GetOrderedList( string[] filters, bool exclusive = false );
     public List<T> GetOrderedList( string filter, bool exclusive = false )
     {
         return GetOrderedList( new string[ 1 ] { filter }, exclusive );
@@ -35,29 +60,23 @@ public abstract class ItemContainer<T> : MonoBehaviour, ICollection<T>
 
     public bool IsReadOnly => false;
     public int Count => _Contents.Count;
-    public abstract int TotalItems {
-        get;
-    }
 
-    public abstract bool CanAddSingleItem( Item item );
     public virtual bool CanAdd( T entry )
     {
-        return true;
+        return !IsFull;
     }
 
-    public abstract bool ContainsAny( Item item );
     public bool Contains( T entry )
     {
         return _Contents.Contains( entry );
     }
 
-    public abstract void AddSingleItem( Item item );
     public void Add( T entry )
     {
         if ( CanAdd( entry ) )
             _Contents.Add( entry );
         else
-            throw new UnityException();
+            throw new ContainerException();
     }
     public T[] Add( T[] entries )
     {
@@ -107,7 +126,6 @@ public abstract class ItemContainer<T> : MonoBehaviour, ICollection<T>
         return failed.ToArray();
     }
     
-    public abstract void RemoveSingleItem( Item item );
     public bool Remove( T entry )
     {
         return _Contents.Remove( entry );
@@ -124,6 +142,7 @@ public abstract class ItemContainer<T> : MonoBehaviour, ICollection<T>
         while ( count > 0 )
         {
             RemoveSingleItem( item );
+            count--;
         }
     }
     public void Remove( Item[] items )
@@ -154,5 +173,8 @@ public abstract class ItemContainer<T> : MonoBehaviour, ICollection<T>
         return _Contents.GetEnumerator();
     }
 
-    protected virtual void Awake() {}
+    protected virtual void Awake()
+    {
+        _Contents = new List<T>();
+    }
 }

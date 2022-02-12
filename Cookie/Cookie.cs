@@ -62,8 +62,15 @@ public class Cookie : MonoBehaviour
         }
     }
 
-    [ SerializeField ]
-    private float PersistentModifier;
+    private float _velocity;
+    private float _lastVelocity;
+    public float Velocity {
+        get {
+            return _lastVelocity;
+        }
+    }
+
+    public float PersistentModifier;
 
     private List<CookieGradualModifier> _modifiers;
 
@@ -73,14 +80,16 @@ public class Cookie : MonoBehaviour
         _modifiers = new List<CookieGradualModifier>();
     }
 
-    void Start()
+    protected virtual void Awake()
     {
-        AddGradualModifier( PersistentModifier );
+        
     }
 
     // Update is called once per frame
-    void Update()
+    protected virtual void Update()
     {
+        AddGradual( PersistentModifier );
+
         List<CookieGradualModifier> toRemove = new List<CookieGradualModifier>();
         foreach ( CookieGradualModifier mod in _modifiers )
         {
@@ -94,6 +103,11 @@ public class Cookie : MonoBehaviour
         {
             _modifiers.Remove( mod );
         }
+
+        Value += _velocity * Time.deltaTime;
+
+        _lastVelocity = _velocity;
+        _velocity = 0f;
     }
 
     public void AddBurst( float delta )
@@ -103,7 +117,7 @@ public class Cookie : MonoBehaviour
 
     public void AddGradual( float delta )
     {
-        Value += delta;
+        _velocity += delta;
     }
 
     public void AddGradualModifier( float delta, float duration = 0f )

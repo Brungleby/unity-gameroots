@@ -5,7 +5,7 @@ using UnityEngine;
 public class SpinningMovement : MonoBehaviour
 {
     public Vector3 PerAxisSpeed = Vector3.up;
-    public float SpeedMultiplier = 1.0f;
+    public float SpeedMultiplier = 100.0f;
 
     // Update is called once per frame
     void Update()

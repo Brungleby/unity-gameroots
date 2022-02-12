@@ -42,7 +42,7 @@ public class InteractorSphere : Interactor
 
         foreach ( RaycastHit hit in hits )
         {
-            Interactible item = hit.collider.GetComponent<Interactible>();
+            Interactible item = hit.transform.GetComponentInParent<Interactible>();
             if ( item )
             {
                 if ( IsAngleWithinSensor( GetAngleFromForward( item ) ) )

@@ -100,7 +100,7 @@ public class Item : ScriptableObject, System.IComparable<Item>
 
     [ Header( "Item Listing" ) ]
 
-    [ Tooltip( "Icon that represents this Item." ) ]
+    [ Tooltip( "Icon that can represent this Item." ) ]
     public Sprite Icon;
     [ Tooltip( "Whether or not this Item can be consolidated into a stack of similar types. In other words, is it NOT unique?" ) ]
     public bool Stackable = true;

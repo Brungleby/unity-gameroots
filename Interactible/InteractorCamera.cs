@@ -23,7 +23,7 @@ public class InteractorCamera : Interactor
         );
 
         if ( success )
-            return hit.collider.GetComponent<Interactible>();
+            return hit.transform.GetComponentInParent<Interactible>();
         else
             return null;
     }

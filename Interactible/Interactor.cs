@@ -6,7 +6,10 @@ using UnityEngine.InputSystem;
 public abstract class Interactor : MonoBehaviour
 {
     protected abstract Interactible GetInteractible();
-    
+
+    // Should not be this class; this is temporary.
+    public ItemSingleContainer PickupDeposit;
+
     public LayerMask SensorLayerMask;
     public float SensorSize = 2.0f;
 
@@ -30,14 +33,24 @@ public abstract class Interactor : MonoBehaviour
 
     public virtual void Interact( Interactible interact )
     {
-        interact.Use();
+        try {
+            interact.TryInteract( this );
+        }
+        catch ( UnityException e ) {
+            throw e;
+        }
     }
 
     public bool TryInteract()
     {
         if ( IsFocused )
         {
-            Interact( FocusInteractible );
+            try {
+                Interact( FocusInteractible );
+            }
+            catch {
+                return false;
+            }
 
             return true;
         }

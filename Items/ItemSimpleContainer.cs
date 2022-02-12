@@ -49,7 +49,7 @@ public class ItemSimpleContainer : ItemContainer<Item>
 
     public override bool CanAddSingleItem( Item item )
     {
-        return CanAdd( item );
+        return !IsFull;
     }
 
     public sealed override void AddSingleItem( Item item )

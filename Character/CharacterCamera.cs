@@ -34,8 +34,8 @@ public class CharacterCamera : MonoBehaviour
     {
         // Note: It may be necessary to replace instances of '0.01f' with 'Time.deltaTime'. I tried removing it because Time.deltaTime is already used in the Lerp call below and that seemed to keep consistent rotation speed when using fewer/more frames.
         //
-        float yaw   = _inputRotation.x * RotationSpeed.x * 0.01f * ( InvertAxes.x ? -1f : 1f );
-        float pitch = _inputRotation.y * RotationSpeed.y * 0.01f * (!InvertAxes.y ? -1f : 1f );
+        float yaw   = _inputRotation.x * RotationSpeed.x * Time.deltaTime * ( InvertAxes.x ? -1f : 1f );
+        float pitch = _inputRotation.y * RotationSpeed.y * Time.deltaTime * (!InvertAxes.y ? -1f : 1f );
 
         _rotation += new Vector2( yaw, pitch );
 
