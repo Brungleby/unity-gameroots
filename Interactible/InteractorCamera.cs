@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class InteractorCamera : Interactor
 {
+    public float SensorLength = 2.0f;
+    public float SensorRadius = 0.1f;
+
     [ Tooltip( "Camera from which to cast the sensor ray. Defaults to sibling camera component." ) ] [ SerializeField ]
     private Camera _LineCamera;
     public Camera LineCamera {
@@ -17,14 +20,14 @@ public class InteractorCamera : Interactor
     protected override Interactible GetInteractible()
     {
         RaycastHit hit;
-        bool success = Physics.Raycast(
-            LineCamera.transform.position, LineCamera.transform.forward, out hit,
-            SensorSize, SensorLayerMask, QueryTriggerInteraction.Ignore
+        bool success = Physics.SphereCast(
+            LineCamera.transform.position, SensorRadius,
+            LineCamera.transform.forward, out hit, SensorLength,
+            SensorLayerMask, QueryTriggerInteraction.Ignore
         );
-
+        
         if ( success )
             return hit.transform.GetComponentInParent<Interactible>();
-        else
-            return null;
+        return null;
     }
 }

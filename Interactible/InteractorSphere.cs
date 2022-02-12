@@ -4,8 +4,17 @@ using UnityEngine;
 
 public class InteractorSphere : Interactor
 {
-    [ Tooltip( "Only interactibles within this angle will be considered for sensing." ) ]
-    public float SensorAngle = 180.0f; 
+    [ Tooltip( "Maximum radius from the SensorOrigin that Interactibles can be sensed within." ) ]
+    public float SensorRadius = 4.0f;
+
+    [ Tooltip( "Maximum angle from the AngleOrigin that Interactibles can be sensed within." ) ]
+    public float SensorAngle = 180.0f;
+    
+    // [ Tooltip( "Whether or not to check if an Interactible " ) ]
+    // public bool EnableLineTest = true;
+
+    [ Tooltip( "This is the radius of the raycast used to confirm there is nothing between the confirmation source and a prospective Interactible." ) ]
+    public float LineTestRadius = 0.1f;
 
     [ Tooltip( "Custom Transform to set the origin of the sensor sphere." ) ] [ SerializeField ]
     private Transform _SensorOrigin;
@@ -28,11 +37,11 @@ public class InteractorSphere : Interactor
     }
 
     protected override Interactible GetInteractible()
-    {
+    {        
         // Find ALL things in the sphere.
         //
         RaycastHit[] hits = Physics.SphereCastAll(
-            SensorOrigin.position, SensorSize, Vector3.zero, 0f,
+            SensorOrigin.position, SensorRadius, Vector3.zero, 0f,
             SensorLayerMask, QueryTriggerInteraction.Ignore
         );
 
@@ -47,11 +56,14 @@ public class InteractorSphere : Interactor
             {
                 if ( IsAngleWithinSensor( GetAngleFromForward( item ) ) )
                 {
-                    available.Add( item );
+                    if ( LineTest( item ) )
+                    {
+                        available.Add( item );
+                    }
                 }
             }
         }
-        
+
         // Of all things within range, select the one closest to our center of 'view'.
         //
         Interactible optimal = null;
@@ -89,5 +101,17 @@ public class InteractorSphere : Interactor
         float angle = Mathf.Acos( dot );
 
         return Mathf.Abs( angle );
+    }
+
+    private bool LineTest( Interactible item )
+    {
+        Vector3 delta = item.transform.position - SensorOrigin.position;
+        
+        RaycastHit hit; Physics.SphereCast(
+            SensorOrigin.position, LineTestRadius, delta.normalized,
+            out hit, delta.magnitude, SensorLayerMask, QueryTriggerInteraction.Ignore
+        );
+
+        return hit.collider.GetComponent<Interactible>() == item;
     }
 }

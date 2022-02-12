@@ -24,41 +24,36 @@ public class Interactible : MonoBehaviour
         }
     }
 
-    public bool SingleUse = false;
-
-    public UnityEvent<Interactor> OnInteractSuccess;
-    public UnityEvent<Interactor> OnInteractFailed;
-
     protected virtual void OnValidate() {}
     protected virtual void Awake() {}
 
     /// <summary>
     /// Overridable method for determining whether or not the given Interactor can in fact Interact with this.
     /// </summary>
-    protected virtual bool CheckInstigator( Interactor instigator )
+    protected virtual bool CheckData( InteractionData data = null )
     {
         return true;
     }
 
     /// <summary>
-    /// Overridable method for what this thing does when interacting with the given instigator.
+    /// Overridable method for what this thing does when interacting with the given user.
     /// </summary>
-    protected virtual void Interact( Interactor instigator ) {}
+    protected virtual void Interact( InteractionData data = null ) {}
     
-    public void TryInteract( Interactor instigator )
+    public bool TryReceiveInteraction( InteractionData data = null )
     {
-        if ( CheckInstigator( instigator ) )
+        if ( data == null )
         {
-            Interact( instigator );
-            OnInteractSuccess.Invoke( instigator );
+            Interact();
+            return true;
+        }
 
-            if ( SingleUse )
-                Destroy( this );
-        }
-        else
+        if ( CheckData( data ) )
         {
-            OnInteractFailed.Invoke( instigator );
-            throw new InteractionException();
+            Interact( data );
+            return true;
         }
+
+        return false;
     }
 }

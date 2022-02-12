@@ -5,14 +5,15 @@ public class Pickup : Interactible
 {
     public override string Tooltip => base.Tooltip + " " + Item.Name;
 
-    protected override bool CheckInstigator( Interactor instigator )
+    protected override bool CheckData( InteractionData data )
     {
-        return instigator.PickupDeposit.Item == null;
+        // return user.PickupDeposit.Item == null;
+        return true;
     }
 
-    protected override void Interact( Interactor instigator )
+    protected override void Interact( InteractionData data )
     {
-        instigator.PickupDeposit.Item = Item;
+        // user.PickupDeposit.Item = Item;
         Destroy( gameObject );
     }
 

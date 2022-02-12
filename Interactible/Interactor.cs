@@ -2,16 +2,17 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Events;
 
 public abstract class Interactor : MonoBehaviour
 {
     protected abstract Interactible GetInteractible();
 
-    // Should not be this class; this is temporary.
-    public ItemSingleContainer PickupDeposit;
-
     public LayerMask SensorLayerMask;
-    public float SensorSize = 2.0f;
+
+    public UnityEvent<Interactible> OnInteractSuccess;
+    public UnityEvent<Interactible> OnInteractFailure;
+    public UnityEvent OnInteractNone;
 
     private Interactible _focus;
     public Interactible FocusInteractible {
@@ -26,36 +27,32 @@ public abstract class Interactor : MonoBehaviour
         }
     }
 
+    public InteractionData InteractData {
+        get {
+            return GetComponent<InteractionData>();
+        }
+    }
+
     private void Update()
     {
         _focus = GetInteractible();
     }
 
-    public virtual void Interact( Interactible interact )
+    public void InteractWith( Interactible other )
     {
-        try {
-            interact.TryInteract( this );
-        }
-        catch ( UnityException e ) {
-            throw e;
-        }
+        bool success = other.TryReceiveInteraction( InteractData );
+        if ( success )
+            OnInteractSuccess.Invoke( other );
+        else
+            OnInteractFailure.Invoke( other );
     }
 
-    public bool TryInteract()
+    public void TryInteract()
     {
         if ( IsFocused )
-        {
-            try {
-                Interact( FocusInteractible );
-            }
-            catch {
-                return false;
-            }
-
-            return true;
-        }
-
-        return false;
+            InteractWith( FocusInteractible );
+        else
+            OnInteractNone.Invoke();
     }
 
     public void InputInteract( InputAction.CallbackContext context )
