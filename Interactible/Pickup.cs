@@ -3,17 +3,18 @@ using UnityEngine;
 
 public class Pickup : Interactible
 {
-    public override string Tooltip => base.Tooltip + " " + Item.Name;
-
-    protected override bool CheckData( InteractionData data )
+    public override string Tooltip( InteractionData data = null )
     {
-        // return user.PickupDeposit.Item == null;
+        return Item.Name;
+    }
+
+    protected override bool CheckData( InteractionData data = null )
+    {
         return true;
     }
 
-    protected override void Interact( InteractionData data )
+    protected override void Interact( InteractionData data = null )
     {
-        // user.PickupDeposit.Item = Item;
         Destroy( gameObject );
     }
 
@@ -27,10 +28,38 @@ public class Pickup : Interactible
     {
         base.OnValidate();
 
-        if ( Item.Prefab.GetComponent<MeshRenderer>() )
+        if ( Item )
         {
-            PreviewObject.GetComponent<MeshFilter>().mesh = Item.Prefab.GetComponent<MeshFilter>().sharedMesh;
-            PreviewObject.GetComponent<MeshRenderer>().materials = Item.Prefab.GetComponent<MeshRenderer>().sharedMaterials;
+            gameObject.name = Item.name + " (Pickup)";
+
+            if ( Item.Prefab.GetComponentInChildren<MeshRenderer>() )
+            {
+                PreviewObject.GetComponent<MeshFilter>().mesh = Item.Prefab.GetComponentInChildren<MeshFilter>().sharedMesh;
+                PreviewObject.GetComponent<MeshRenderer>().materials = Item.Prefab.GetComponentInChildren<MeshRenderer>().sharedMaterials;
+            }
+        }
+    }
+
+    protected override void Awake()
+    {
+        base.Awake();
+        
+        Swap( Item );
+    }
+
+    public void Swap( Item item )
+    {
+        Item = item;
+        
+        if ( item )
+        {
+            gameObject.name = Item.name + " (Pickup)";
+            Destroy( PreviewObject );
+            PreviewObject = Instantiate( Item.Prefab, Socket );
+        }
+        else
+        {
+            Destroy( gameObject );
         }
     }
 

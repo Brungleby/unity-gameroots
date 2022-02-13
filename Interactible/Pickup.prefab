@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4466335964406933352}
   - component: {fileID: 1565612037155652497}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: Pickup
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -45,13 +45,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TooltipBase: Take
-  SingleUse: 0
-  OnInteractSuccess:
-    m_PersistentCalls:
-      m_Calls: []
-  OnInteractFailed:
-    m_PersistentCalls:
-      m_Calls: []
   Item: {fileID: 11400000, guid: deb74957493a0d740a6cc7b5d059ddc5, type: 2}
   Socket: {fileID: 2300800992193297856}
   PreviewObject: {fileID: 848870779976908235}
@@ -67,7 +60,6 @@ GameObject:
   - component: {fileID: 8035237809618455337}
   - component: {fileID: 5414394211641936588}
   - component: {fileID: 3644167455887538758}
-  - component: {fileID: 58605857055306601}
   m_Layer: 7
   m_Name: Mesh
   m_TagString: Untagged
@@ -149,23 +141,9 @@ MeshCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 4
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 30
-  m_Mesh: {fileID: -3052842803533861685, guid: 1a88b57ffb7669944a70f15a59790b8c, type: 3}
---- !u!64 &58605857055306601
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 848870779976908235}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 4
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: -3052842803533861685, guid: 1a88b57ffb7669944a70f15a59790b8c, type: 3}
+  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!1 &9216977515337507301
 GameObject:
   m_ObjectHideFlags: 0

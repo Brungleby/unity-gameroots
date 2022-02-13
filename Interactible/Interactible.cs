@@ -18,14 +18,14 @@ public class Interactible : MonoBehaviour
 
     [ SerializeField ]
     private string TooltipBase = "Interact";
-    public virtual string Tooltip {
-        get {
-            return TooltipBase;
-        }
-    }
 
     protected virtual void OnValidate() {}
     protected virtual void Awake() {}
+
+    public virtual string Tooltip( InteractionData data = null )
+    {
+        return TooltipBase;
+    }
 
     /// <summary>
     /// Overridable method for determining whether or not the given Interactor can in fact Interact with this.
