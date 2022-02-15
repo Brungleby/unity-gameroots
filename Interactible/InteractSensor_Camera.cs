@@ -9,7 +9,7 @@ public class InteractSensor_Camera : InteractSensor
     {
         RaycastHit hit = LineTest( SensorLength );
         if ( hit.collider )
-            return hit.transform.GetComponentInParent<Interactible>();
+            return hit.collider.GetComponent<Interactible>();
         return null;
     }
 

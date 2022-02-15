@@ -37,7 +37,7 @@ public class InteractSensor_Sphere : InteractSensor
     }
 
     protected override Interactible GetInteractible()
-    {        
+    {
         // Find ALL things in the sphere.
         //
         RaycastHit[] hits = Physics.SphereCastAll(

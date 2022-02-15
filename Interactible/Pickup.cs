@@ -4,12 +4,12 @@ using UnityEngine;
 [ RequireComponent( typeof( ItemFilter ) ) ]
 public class Pickup : Interactible
 {
-    public override string GetContextualTooltip( Interactor data = null )
+    public override string GetContextualTooltip( Interactor data )
     {
         return Item.Name;
     }
 
-    protected override void Interact( Interactor data = null )
+    protected override void Interact( Interactor data )
     {
         Destroy( gameObject );
     }
@@ -24,46 +24,5 @@ public class Pickup : Interactible
         }
     }
 
-    [ Tooltip( "Transform at which to attach the Item's prefab." ) ]
-    public Transform Socket;
-    public GameObject PreviewObject;
-
-    protected override void OnValidate()
-    {
-        base.OnValidate();
-
-        if ( Item )
-        {
-            gameObject.name = Item.name + " (Pickup)";
-
-            if ( Item.Prefab.GetComponentInChildren<MeshRenderer>() )
-            {
-                PreviewObject.GetComponent<MeshFilter>().mesh = Item.Prefab.GetComponentInChildren<MeshFilter>().sharedMesh;
-                PreviewObject.GetComponent<MeshRenderer>().materials = Item.Prefab.GetComponentInChildren<MeshRenderer>().sharedMaterials;
-            }
-        }
-    }
-
-    protected override void Awake()
-    {
-        base.Awake();
-        
-        Swap( Item );
-    }
-
-    public void Swap( Item item )
-    {
-        Item = item;
-        
-        if ( item )
-        {
-            gameObject.name = Item.name + " (Pickup)";
-            Destroy( PreviewObject );
-            PreviewObject = Instantiate( Item.Prefab, Socket );
-        }
-        else
-        {
-            Destroy( gameObject );
-        }
-    }
+    
 }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// This is the component that senses and triggers interaction on an object in the world. It should only sense Interactibles and should for the most part be stateless. Any attached InteractionData is passed to the Interactible. This way, any Interactor can use any InteractData independently.
+/// This is the component that senses interactibles in the world. An attached Interactor can be used to read data from this sensor.
 /// </summary>
 public abstract class InteractSensor : MonoBehaviour
 {

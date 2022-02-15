@@ -1,30 +1,16 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Events;
 
 public class Interactible : MonoBehaviour
 {
-    [System.Serializable]
-    public class InteractionException : UnityException
-    {
-        public InteractionException() { }
-        public InteractionException(string message) : base(message) { }
-        public InteractionException(string message, System.Exception inner) : base(message, inner) { }
-        protected InteractionException(
-            System.Runtime.Serialization.SerializationInfo info,
-            System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
-    }
-
     [ SerializeField ]
-    private string Tooltip = "Interact";
+    private string _Tooltip = "Interact";
 
     protected virtual void OnValidate() {}
     protected virtual void Awake() {}
 
     public virtual string GetContextualTooltip( Interactor data )
     {
-        return Tooltip;
+        return _Tooltip;
     }
 
     /// <summary>
@@ -40,7 +26,7 @@ public class Interactible : MonoBehaviour
     /// </summary>
     protected virtual void Interact( Interactor data )
     {
-        print( Tooltip );
+        print( _Tooltip );
     }
     
     public bool ReceiveInteraction( Interactor data )

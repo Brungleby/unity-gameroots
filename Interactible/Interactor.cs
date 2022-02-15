@@ -32,7 +32,7 @@ public class Interactor : MonoBehaviour
             OnInteractFailure.Invoke( other );
     }
 
-    public void TryInteract()
+    public virtual void TryInteract()
     {
         if ( Sensor.IsFocused )
             InteractWith( Sensor.FocusInteractible );
@@ -40,7 +40,7 @@ public class Interactor : MonoBehaviour
             OnInteractNone.Invoke();
     }
 
-    public void InputInteract( InputAction.CallbackContext context )
+    public virtual void InputInteract( InputAction.CallbackContext context )
     {
         if ( context.started )
             TryInteract();
