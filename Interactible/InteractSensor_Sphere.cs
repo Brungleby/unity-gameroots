@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class InteractorSphere : Interactor
+public class InteractSensor_Sphere : InteractSensor
 {
     [ Tooltip( "Maximum radius from the SensorOrigin that Interactibles can be sensed within." ) ]
     public float SensorRadius = 4.0f;

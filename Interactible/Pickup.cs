@@ -1,25 +1,29 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[ RequireComponent( typeof( ItemFilter ) ) ]
 public class Pickup : Interactible
 {
-    public override string Tooltip( InteractionData data = null )
+    public override string GetContextualTooltip( Interactor data = null )
     {
         return Item.Name;
     }
 
-    protected override bool CheckData( InteractionData data = null )
-    {
-        return true;
-    }
-
-    protected override void Interact( InteractionData data = null )
+    protected override void Interact( Interactor data = null )
     {
         Destroy( gameObject );
     }
 
-    [ Tooltip( "Item added to inventory when this GameObject is picked up." ) ]
-    public Item Item;
+    // [ Tooltip( "Item added to inventory when this GameObject is picked up." ) ]
+    public Item Item {
+        get {
+            return GetComponent<ItemFilter>().Item;
+        }
+        set {
+            GetComponent<ItemFilter>().Item = value;
+        }
+    }
+
     [ Tooltip( "Transform at which to attach the Item's prefab." ) ]
     public Transform Socket;
     public GameObject PreviewObject;
@@ -62,5 +66,4 @@ public class Pickup : Interactible
             Destroy( gameObject );
         }
     }
-
 }

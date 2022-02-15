@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 /// <summary>
 /// The base class for items which can be stored inside containers and from there, filtered and sorted. Supports a few basic properties most games' items will have.
@@ -7,42 +8,27 @@ using UnityEngine;
 [ CreateAssetMenu( fileName = "New Item", menuName = "Inventory/Basic Item", order = 100 ) ]
 public class Item : ScriptableObject, System.IComparable<Item>
 {
-    public override int GetHashCode()
-    {
-        return ID.GetHashCode();
-    }
-    public override string ToString()
-    {
-        return ID;
-    }
+    #region Overrides : ScriptableObject
 
-    public int CompareTo( Item other )
-    {
-        return Mathf.FloorToInt( Mathf.Sign( ListOrder - other.ListOrder ) );
-    }
-
-    public bool HasTag( string filter )
-    {
-        return FilterTags.Contains( filter );
-    }
-    public bool HasTags( string[] filters, bool exclusive )
-    {
-        foreach ( string filter in filters )
+        public override int GetHashCode()
         {
-            if ( HasTag( filter ) != exclusive )
-                return !exclusive;
+            return ID.GetHashCode();
+        }
+        public override string ToString()
+        {
+            return ID;
         }
 
-        return exclusive;
-    }
-    public bool HasAllTags( string[] filters )
-    {
-        return HasTags( filters, true );
-    }
-    public bool HasAnyTags( string[] filters )
-    {
-        return HasTags( filters, false );
-    }
+    #endregion
+
+    #region Overrides : IComparable<Item>
+
+        public int CompareTo( Item other )
+        {
+            return Mathf.FloorToInt( Mathf.Sign( ListOrder - other.ListOrder ) );
+        }
+
+    #endregion
 
     [ Header( "Info" ) ]
 
@@ -77,15 +63,7 @@ public class Item : ScriptableObject, System.IComparable<Item>
     [ Header( "General" ) ]
 
     [ Tooltip( "The GameObject to Instantiate for this Item." ) ] [ SerializeField ]
-    private GameObject _Prefab;
-    public virtual GameObject Prefab {
-        get {
-            return _Prefab;
-        }
-        set {
-            _Prefab = value;
-        }
-    }
+    public GameObject Prefab;
 
     [ Space( 10 ) ]
 
@@ -130,5 +108,28 @@ public class Item : ScriptableObject, System.IComparable<Item>
             _FilterTags = new string[ value.Count ];
             value.CopyTo( _FilterTags );
         }
+    }
+
+    public bool HasTag( string filter )
+    {
+        return FilterTags.Contains( filter );
+    }
+    public bool HasTags( string[] filters, bool exclusive )
+    {
+        foreach ( string filter in filters )
+        {
+            if ( HasTag( filter ) != exclusive )
+                return !exclusive;
+        }
+
+        return exclusive;
+    }
+    public bool HasAllTags( string[] filters )
+    {
+        return HasTags( filters, true );
+    }
+    public bool HasAnyTags( string[] filters )
+    {
+        return HasTags( filters, false );
     }
 }

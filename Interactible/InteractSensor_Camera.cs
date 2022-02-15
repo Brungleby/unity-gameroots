@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
-public class InteractorCamera : Interactor
+public class InteractSensor_Camera : InteractSensor
 {
     protected override Interactible GetInteractible()
     {

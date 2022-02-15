@@ -4,43 +4,28 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Events;
 
-public abstract class Interactor : MonoBehaviour
+/// <summary>
+/// This component's data will be sent to Interactibles that the Sensor interacts with. This is what allows items to interact with specific players/entities.
+/// </summary>
+[ RequireComponent( typeof( InteractSensor ) ) ]
+public class Interactor : MonoBehaviour
 {
-    protected abstract Interactible GetInteractible();
+    [ SerializeField ]
+    private UnityEvent<Interactible> OnInteractSuccess;
+    [ SerializeField ]
+    private UnityEvent<Interactible> OnInteractFailure;
+    [ SerializeField ]
+    private UnityEvent OnInteractNone;
 
-    public LayerMask SensorLayerMask;
-
-    public UnityEvent<Interactible> OnInteractSuccess;
-    public UnityEvent<Interactible> OnInteractFailure;
-    public UnityEvent OnInteractNone;
-
-    private Interactible _focus;
-    public Interactible FocusInteractible {
+    public InteractSensor Sensor {
         get {
-            return _focus;
+            return GetComponent<InteractSensor>();
         }
-    }
-
-    public bool IsFocused {
-        get {
-            return _focus != null;
-        }
-    }
-
-    public InteractionData InteractData {
-        get {
-            return GetComponent<InteractionData>();
-        }
-    }
-
-    private void Update()
-    {
-        _focus = GetInteractible();
     }
 
     public void InteractWith( Interactible other )
     {
-        bool success = other.TryReceiveInteraction( InteractData );
+        bool success = other.ReceiveInteraction( this );
         if ( success )
             OnInteractSuccess.Invoke( other );
         else
@@ -49,8 +34,8 @@ public abstract class Interactor : MonoBehaviour
 
     public void TryInteract()
     {
-        if ( IsFocused )
-            InteractWith( FocusInteractible );
+        if ( Sensor.IsFocused )
+            InteractWith( Sensor.FocusInteractible );
         else
             OnInteractNone.Invoke();
     }
