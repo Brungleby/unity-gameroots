@@ -62,11 +62,6 @@ public class Item : ScriptableObject, System.IComparable<Item>
 
     [ Header( "General" ) ]
 
-    [ Tooltip( "The GameObject to Instantiate for this Item." ) ] [ SerializeField ]
-    public GameObject Prefab;
-
-    [ Space( 10 ) ]
-
     [ Tooltip( "Whether or not players can use this item directly." ) ]
     public bool Usable = true;
     [ Tooltip( "Whether or not this item is consumed when it is used." ) ]
