@@ -4,12 +4,15 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Events;
 
-public abstract class Interactor : MonoBehaviour
+/// <summary>
+/// This component can receive input to trigger interactions with Interactibles (found using an attached InteractibleFinder). You will need to use one Interactor per type of Interaction you would like to implement, denoted by the ActionType.
+/// </summary>
+public class Interactor : MonoBehaviour
 {
     [ SerializeField ]
-    public InteractSensor Sensor;
+    public InteractibleFinder Sensor;
 
-    public string ActionType;
+    public string ActionType = "Default";
 
     [ SerializeField ]
     private UnityEvent< Interactible.Interaction > OnInteract;
@@ -19,7 +22,7 @@ public abstract class Interactor : MonoBehaviour
     protected virtual void Awake()
     {
         if ( Sensor == null )
-            Sensor = GetComponent<InteractSensor>();
+            Sensor = GetComponent< InteractibleFinder >();
     }
 
     public void InteractWith( Interactible other )

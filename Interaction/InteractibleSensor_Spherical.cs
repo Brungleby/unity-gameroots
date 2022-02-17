@@ -2,6 +2,9 @@
 // using System.Collections.Generic;
 // using UnityEngine;
 
+/// <summary>
+/// This InteractSensor is primarily for 3rd Person games. It performs a complicated series of Raycasts to determine the optimal source of Interactibles to find. First it searches within a radius around the SourceTransform, and only within a specific cone angle. Then it may check to determine if there is anything obstructing those items from view. It will try to find the closest Interactible GameObject from the conical center and work its way outwards if obstructed.
+/// </summary>
 // public class InteractSensor_Sphere : InteractSensor_Raycast
 // {
 //     protected override Interactible GetFocusedInteractible()

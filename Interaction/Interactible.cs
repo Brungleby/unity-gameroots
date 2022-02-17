@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
+/// <summary>
+/// Interactors can interact with Interactibles.
+/// </summary>
 public class Interactible : MonoBehaviour
 {
     public class Interaction

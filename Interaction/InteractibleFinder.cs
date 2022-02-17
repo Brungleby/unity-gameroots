@@ -3,11 +3,20 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// This is the component that senses Interactibles in the world.
+/// This component finds Interactibles for Interactors to Interact with.
 /// </summary>
-public abstract class InteractSensor : MonoBehaviour
+public abstract class InteractibleFinder : MonoBehaviour
 {
-    public abstract List< Interactible > FindInteractibles();
+    public abstract Interactible[] FindInteractibles();
+
+    public static Interactible[] FindInteractiblesIn( GameObject o )
+    {
+        return o.GetComponentsInParent< Interactible >();
+    }
+    public static Interactible[] FindInteractiblesIn( Component c )
+    {
+        return c.GetComponentsInParent< Interactible >();
+    }
 
     private List< Interactible > _foci;
     public List< Interactible > GetFocusedInteractibles {
