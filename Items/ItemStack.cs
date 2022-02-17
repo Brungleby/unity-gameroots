@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// A basic listing for representing items in complex containers.
+/// A basic listing for representing items in stacked containers.
 /// </summary>
 public class ItemStack : System.IComparable<ItemStack>
 {

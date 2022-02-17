@@ -2,6 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Simple container class for storing Items. Items in this container cannot stack; duplicates are listed separately. Good for games that have only a few key items or adventure games.
+/// </summary>
 public class Container_Simple : Container
 {
     public override int Count => _Contents.Count;
