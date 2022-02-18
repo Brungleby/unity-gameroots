@@ -14,10 +14,10 @@ public class Pickup : Interactible
     {
         return
             base.CheckInteraction( instigator, actionType ) &&
-            action.Instigator.GetType() != typeof( Interactor_Pickup );
+            instigator.GetType() == typeof( Interactor_Pickup );
     }
 
-    protected override void Interact( Interaction interaction )
+    protected override Interaction Interact( Interaction interaction )
     {
         Interactor_Pickup instigator = (Interactor_Pickup) interaction.Instigator;
 

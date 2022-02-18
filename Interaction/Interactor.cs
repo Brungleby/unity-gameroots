@@ -15,9 +15,9 @@ public class Interactor : MonoBehaviour
     public string ActionType = "Default";
 
     [ SerializeField ]
-    private UnityEvent< Interactible.Interaction > OnInteractSuccess;
+    private UnityEvent< Interaction > OnInteractSuccess;
     [ SerializeField ]
-    private UnityEvent< Interactible.Interaction > OnInteractFailure;
+    private UnityEvent< Interaction > OnInteractFailure;
     [ SerializeField ]
     private UnityEvent OnInteractIgnored;
 
@@ -29,13 +29,12 @@ public class Interactor : MonoBehaviour
 
     public void InteractWith( Interactible other )
     {
-        try {
-            Interactible.Interaction interaction = other.ReceiveInteraction( this, ActionType );
+        Interaction interaction = other.ReceiveInteraction( this, ActionType );
+        
+        if ( interaction.Result )
             OnInteractSuccess.Invoke( interaction );
-        } catch ( Interactible.InteractionException e ) {
-            OnInteractFailure.Invoke( e.interaction );
-            throw e;
-        }
+        else
+            OnInteractFailure.Invoke( interaction );
     }
 
     public void TryInteract()

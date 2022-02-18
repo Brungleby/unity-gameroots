@@ -40,17 +40,17 @@ public class Interactible : MonoBehaviour
         if ( CheckInteraction( instigator, actionType ) )
         {
             // Create a new Interaction. This will store the involved "parties" and describe what they did and the result.
-            Interaction inst = new Interaction( instigator, this, actionType );
+            Interaction interaction = new Interaction( instigator, this, actionType );
 
             // Execute the Interaction. The Interact function should validate
-            inst = Interact( action );
+            interaction = Interact( interaction );
 
-            if ( inst.Result )
-                OnInteractSuccess.Invoke( inst );
+            if ( interaction.Result )
+                OnInteractSuccess.Invoke( interaction );
             else
-                OnInteractFailure.Invoke( inst );
+                OnInteractFailure.Invoke( interaction );
 
-            return inst;
+            return interaction;
         }
 
         return null;
