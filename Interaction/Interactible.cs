@@ -8,48 +8,47 @@ using UnityEngine.Events;
 /// </summary>
 public class Interactible : MonoBehaviour
 {
-    public class Interaction
-    {
-        public Interactor Instigator;
-        public Interactible Effector;
-        public string ActionType;
-        public bool Result;
-
-        public Interaction( Interactor _instigator, Interactible _effector, string _actionType, bool _result )
-        {
-            Instigator = _instigator;
-            Effector = _effector;
-            ActionType = _actionType;
-            Result = _result;
-        }
-    }
-
     public string[] AvailableActions = new string[ 1 ] { "Default" };
 
     [ SerializeField ]
-    private UnityEvent< Interaction > OnInteract;
+    private UnityEvent< Interaction > OnInteractSuccess;
+    [ SerializeField ]
+    private UnityEvent< Interaction > OnInteractFailure;
 
-    protected virtual void Interact( Interaction query ) {}
-
-    protected virtual bool CheckInteraction( Interaction query )
+    /// <summary>
+    /// This function checks whether or not the interaction can be performed at all. If it can't, don't even bother creating an Interaction.
+    /// </summary>
+    /// <returns>
+    /// True if the Interaction can be attempted, not necessarily if it will succeed. False if the Interaction should not be attempted.
+    /// </returns>
+    protected virtual bool CheckInteraction( Interactor instigator, string actionType )
     {
-        return true;
+        return IsActionAvailable( actionType );
     }
 
-    public Interaction ReceiveInteraction( Interactor other, string actionType )
+    /// <summary>
+    /// This is the interaction that actually happens. If the interaction succeeds, return interaction.Complete(); otherwise action.Abort();
+    /// </summary>
+    protected virtual Interaction Interact( Interaction interaction )
     {
-        if ( IsActionAvailable( actionType ) )
+        return interaction.Complete();
+    }
+
+    public Interaction ReceiveInteraction( Interactor instigator, string actionType )
+    {
+        // When an interactor INSTIGATES this function, first check to make sure that this Interactible can perform the input actionType. If it can't, treat it as if nothing happened.
+        if ( CheckInteraction( instigator, actionType ) )
         {
-            Interaction inst = new Interaction( other, this, actionType, false );
-            bool success = CheckInteraction( inst );
+            // Create a new Interaction. This will store the involved "parties" and describe what they did and the result.
+            Interaction inst = new Interaction( instigator, this, actionType );
 
-            if ( success )
-            {
-                inst.Result = true;
-                Interact( inst );
-            }
+            // Execute the Interaction. The Interact function should validate
+            inst = Interact( action );
 
-            OnInteract.Invoke( inst );
+            if ( inst.Result )
+                OnInteractSuccess.Invoke( inst );
+            else
+                OnInteractFailure.Invoke( inst );
 
             return inst;
         }
