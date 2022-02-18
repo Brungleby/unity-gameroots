@@ -4,12 +4,6 @@ using UnityEngine;
 
 public class Pickup : Interactible
 {
-    public Item Item {
-        get {
-            return GetComponent<ItemFilter>().Item;
-        }
-    }
-
     protected override bool CheckInteraction( Interactor instigator, string actionType )
     {
         return
@@ -29,5 +23,31 @@ public class Pickup : Interactible
         Destroy( gameObject );
 
         return interaction.Complete();
+    }
+
+    public Transform SocketTransform;
+    [ SerializeField ]
+    private GameObject _PreviewObject;
+
+    public Item Item {
+        get {
+            return GetComponent<ItemFilter>().Item;
+        }
+    }
+
+    protected virtual void OnValidate()
+    {
+        if ( Item )
+        {
+            _PreviewObject.GetComponent<MeshFilter>().mesh = Item.Prefab.GetComponentInChildren<MeshFilter>().sharedMesh;
+            _PreviewObject.GetComponent<MeshRenderer>().materials = Item.Prefab.GetComponentInChildren<MeshRenderer>().sharedMaterials;
+            _PreviewObject.transform.localScale = Item.Prefab.GetComponentInChildren<MeshFilter>().transform.localScale;
+        }
+    }
+
+    protected virtual void Awake()
+    {
+        Destroy( _PreviewObject );
+        _PreviewObject = Instantiate( Item.Prefab, SocketTransform );
     }
 }

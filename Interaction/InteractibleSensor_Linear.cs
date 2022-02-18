@@ -18,9 +18,7 @@ public class InteractibleSensor_Linear : InteractibleSensor
         );
         
         if ( success )
-        {
-            FindInteractiblesIn( hit.transform );
-        }
+            return FindInteractiblesIn( hit.transform );
 
         return new Interactible[ 0 ];
     }
