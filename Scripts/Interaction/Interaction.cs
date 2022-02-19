@@ -1,3 +1,5 @@
+using UnityEngine;
+
 public class Interaction
 {
     public Interactor Instigator;

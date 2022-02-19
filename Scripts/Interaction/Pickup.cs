@@ -29,9 +29,15 @@ public class Pickup : Interactible
     [ SerializeField ]
     private GameObject _PreviewObject;
 
+    [ SerializeField ]
+    private Item _Item;
     public Item Item {
         get {
-            return GetComponent<ItemFilter>().Item;
+            return _Item;
+        }
+        set {
+            _Item = value;
+            Awake();
         }
     }
 
@@ -46,6 +52,11 @@ public class Pickup : Interactible
     }
 
     protected virtual void Awake()
+    {
+        RefreshPrefab();
+    }
+
+    void RefreshPrefab()
     {
         Destroy( _PreviewObject );
         _PreviewObject = Instantiate( Item.Prefab, SocketTransform );

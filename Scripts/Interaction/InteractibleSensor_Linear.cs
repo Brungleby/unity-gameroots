@@ -10,12 +10,8 @@ public class InteractibleSensor_Linear : InteractibleSensor
 {
     public override Interactible[] FindInteractibles()
     {
-        RaycastHit hit;
-        bool success = Physics.SphereCast(
-            SourceTransform.position, SensorRadius,
-            SourceTransform.forward, out hit, MaxDistance,
-            InteractionLayers, QueryTriggerInteraction.Ignore
-        );
+        RaycastHit hit = PerformCast(); 
+        bool success = hit.collider != null;
         
         if ( success )
             return FindInteractiblesIn( hit.transform );
@@ -25,4 +21,15 @@ public class InteractibleSensor_Linear : InteractibleSensor
 
     [ Min( 0f ) ]
     public float SensorRadius = 0.1f;
+
+    public RaycastHit PerformCast()
+    {
+        RaycastHit hit; Physics.SphereCast(
+            SourceTransform.position, SensorRadius,
+            SourceTransform.forward, out hit, MaxDistance,
+            InteractionLayers, QueryTriggerInteraction.Ignore
+        );
+
+        return hit;
+    }
 }
