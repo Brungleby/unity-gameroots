@@ -20,11 +20,14 @@ public abstract class InteractorWatcher : MonoBehaviour
     private void Update()
     {
         Interactible other = Target.CurrentInteractible;
-        if ( _LastSeenInteractible != other )
-        {
-            _LastSeenInteractible = other;
+        OnInteractibleChanged( other );
 
-            OnInteractibleChanged( other );
-        }
+        // // For some reason, this doesn't do what it is supposed to do when destroying an item. Too annoyed to figure out the problem atm.
+        // if ( _LastSeenInteractible != other )
+        // {
+        //     _LastSeenInteractible = other;
+        //     OnInteractibleChanged( other );
+
+        // }
     }
 }

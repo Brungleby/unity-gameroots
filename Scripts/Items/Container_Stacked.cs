@@ -146,6 +146,8 @@ public class Container_Stacked : Container
         }
 
         entry.Quantity++;
+
+        // PrintContents();
     }
     protected override bool RemoveInternal( Item item )
     {
@@ -168,13 +170,7 @@ public class Container_Stacked : Container
 
     public ItemStack CreateEmptyStack( Item item )
     {
-        print( "Item: " + item.DisplayName );
-
         ItemStack entry = new ItemStack( item, 0 );
-    
-        // WTF is going on. Creating the ItemStack should set the item, but printing it immediately afterwards says it's null.
-
-        print( "Stack: " + new ItemStack( item, 0 ).Item.DisplayName );
         _Entries.Add( entry );
 
         return entry;
@@ -205,7 +201,7 @@ public class Container_Stacked : Container
 
     protected virtual ItemStack FindAvailableEntryFor( Item item )
     {
-        ItemStack[] matches = FindMatchingStacks( item );
+        List< ItemStack > matches = FindMatchingStacks( item );
         foreach ( ItemStack stack in matches )
         {
             if ( !stack.IsFull )
@@ -217,7 +213,7 @@ public class Container_Stacked : Container
 
     protected virtual ItemStack FindRemovableEntryFor( Item item )
     {
-        ItemStack[] matches = FindMatchingStacks( item );
+        List< ItemStack > matches = FindMatchingStacks( item );
         foreach ( ItemStack stack in matches )
         {
             if ( !stack.IsEmpty )
@@ -228,17 +224,31 @@ public class Container_Stacked : Container
         return null;
     }
 
-    protected ItemStack[] FindMatchingStacks( Item item )
+    protected List< ItemStack > FindMatchingStacks( Item item )
     {
         List< ItemStack > result = new List< ItemStack >();
 
         foreach ( ItemStack stack in _Entries )
         {
             if ( stack.Item == item )
+            {
                 result.Add( stack );
+            }
+
         }
 
+        return result;
+    }
 
-        return result.ToArray();
+    public void PrintContents()
+    {
+        string msg = "";
+        
+        foreach ( var item in _Entries )
+        {
+            msg += item + ": " + item.Quantity + ", ";
+        }
+        
+        print( msg );
     }
 }

@@ -61,7 +61,7 @@ public class ItemStack : System.IComparable< ItemStack >
     }
     public bool IsFull {
         get {
-            return Capacity >= 0 && Quantity >= Capacity;
+            return Capacity > 0 && Quantity >= Capacity;
         }
     }
 

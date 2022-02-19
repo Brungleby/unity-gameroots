@@ -25,7 +25,7 @@ public static class Extensions
         return result;
     }
 
-    public static string AllToString( this ICollection collection, int limit )
+    public static string AllToString( this ICollection collection, int limit = -1 )
     {
         string result = "[ ";
 

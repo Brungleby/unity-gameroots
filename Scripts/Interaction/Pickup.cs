@@ -37,7 +37,7 @@ public class Pickup : Interactible
 
     protected virtual void OnValidate()
     {
-        if ( Item )
+        if ( Item && _PreviewObject )
         {
             _PreviewObject.GetComponent<MeshFilter>().mesh = Item.Prefab.GetComponentInChildren<MeshFilter>().sharedMesh;
             _PreviewObject.GetComponent<MeshRenderer>().materials = Item.Prefab.GetComponentInChildren<MeshRenderer>().sharedMaterials;
