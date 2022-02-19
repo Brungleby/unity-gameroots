@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
-public class InteractorFeedback_UI : InteractorFeedback
+public class InteractorWatcher_UI : InteractorFeedback
 {
     protected override void OnInteractibleChanged( Interactible other )
     {

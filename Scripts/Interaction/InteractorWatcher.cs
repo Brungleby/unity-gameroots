@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class InteractorFeedback : MonoBehaviour
+public abstract class InteractorWatcher : MonoBehaviour
 {
     protected abstract void OnInteractibleChanged( Interactible other );
 
