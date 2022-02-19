@@ -12,6 +12,7 @@ public class Interactor : MonoBehaviour
     [ SerializeField ]
     public InteractibleFinder Sensor;
 
+    public string ActionName = "Interact";
     public string ActionType = "Default";
 
     [ SerializeField ]
@@ -20,6 +21,26 @@ public class Interactor : MonoBehaviour
     private UnityEvent< Interaction > OnInteractFailure;
     [ SerializeField ]
     private UnityEvent OnInteractIgnored;
+
+    public Interactible CurrentInteractible {
+        get {
+            return Sensor.GetInteractible( ActionType );
+        }
+    }
+
+    public virtual string GetTooltip( Interactible interactible )
+    {
+        if ( interactible != null )
+        {
+            return ActionName + " " + interactible.Tooltip;
+        }
+
+        return "";
+    }
+    public string GetTooltip()
+    {
+        return GetTooltip( CurrentInteractible );
+    }
 
     protected virtual void Awake()
     {
@@ -39,7 +60,7 @@ public class Interactor : MonoBehaviour
 
     public void TryInteract()
     {
-        Interactible focus = Sensor.GetInteractible( ActionType );
+        Interactible focus = CurrentInteractible;
         if ( focus != null )
             InteractWith( focus );
         else

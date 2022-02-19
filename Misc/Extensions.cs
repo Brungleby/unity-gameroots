@@ -4,6 +4,27 @@ using UnityEngine;
 
 public static class Extensions
 {
+    public static GameObject[] GetChildren( this GameObject o )
+    {
+        GameObject[] result = new GameObject[ o.transform.childCount ];
+        for ( int i = 0; i < result.Length; i++ )
+        {
+            result[ i ] = o.transform.GetChild( i ).gameObject;
+        }
+
+        return result;
+    }
+    public static Transform[] GetChildren( this Transform t )
+    {
+        Transform[] result = new Transform[ t.childCount ];
+        for ( int i = 0; i < result.Length; i++ )
+        {
+            result[ i ] = t.GetChild( i );
+        }
+
+        return result;
+    }
+
     public static string AllToString( this ICollection collection, int limit )
     {
         string result = "[ ";

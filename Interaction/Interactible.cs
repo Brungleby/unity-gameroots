@@ -15,6 +15,12 @@ public class Interactible : MonoBehaviour
     [ SerializeField ]
     private UnityEvent< Interaction > OnInteractFailure;
 
+    public virtual string Tooltip {
+        get {
+            return "";
+        }
+    }
+
     /// <summary>
     /// This function checks whether or not the interaction can be performed at all. If it can't, don't even bother creating an Interaction.
     /// </summary>
