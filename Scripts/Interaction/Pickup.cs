@@ -14,7 +14,7 @@ public class Pickup : Interactible
     protected override Interaction Interact( Interaction interaction )
     {
         Interactor_Pickup instigator = (Interactor_Pickup) interaction.Instigator;
-
+        
         bool success = instigator.Deposit.Add( Item );
 
         if ( !success )

@@ -1,5 +1,3 @@
-using UnityEngine;
-
 /// <summary>
 /// A basic listing for representing items in stacked containers.
 /// </summary>
@@ -10,24 +8,41 @@ public class ItemStack : System.IComparable< ItemStack >
         return Item.CompareTo( other.Item );
     }
 
-    public ItemStack( Item itemType, int quantity, int capacity, bool inheritCapacity )
+    public override string ToString()
     {
-        _ItemType = itemType;
+        return base.ToString() + "( " + Item.ID + " )";
+    }
+
+    public ItemStack( Item item, int quantity, int capacity, bool inheritCapacity )
+    {
+        _Item = item;
         _InheritCapacity = inheritCapacity;
         _Capacity = capacity;
         Quantity = quantity;
     }
-    public ItemStack( Item itemType, int quantity, int capacity )
+    public ItemStack( Item item, int quantity, int capacity )
     {
-        new ItemStack( itemType, quantity, capacity, false );
+        _Item = item;
+        _Capacity = capacity;
+        Quantity = quantity;
+
+        _InheritCapacity = false;
     }
-    public ItemStack( Item itemType, int quantity )
+    public ItemStack( Item item, int quantity )
     {
-        new ItemStack( itemType, quantity, 0, true );
+        _Item = item;
+        Quantity = quantity;
+
+        _Capacity = 0;
+        _InheritCapacity = true;
     }
-    public ItemStack( Item itemType )
+    public ItemStack( Item item )
     {
-        new ItemStack( itemType, 1 );
+        _Item = item;
+        
+        Quantity = 0;
+        _Capacity = 0;
+        _InheritCapacity = true;
     }
 
     /// <summary>
@@ -35,7 +50,7 @@ public class ItemStack : System.IComparable< ItemStack >
     /// </summary>
     public string QuantizedName {
         get {
-            return Mathf.Abs( Quantity ) == 1 ? _ItemType.Name : _ItemType.PluralName;
+            return _Item.QuantizedName( Quantity );
         }
     }
 
@@ -50,18 +65,15 @@ public class ItemStack : System.IComparable< ItemStack >
         }
     }
 
-    [ SerializeField ]
-    private Item _ItemType;
+    private Item _Item;
     public Item Item {
         get {
-            return _ItemType;
+            return _Item;
         }
     }
 
-    [ SerializeField ]
     private bool _InheritCapacity;
 
-    [ SerializeField ]
     private int _Quantity;
     /// <summary>
     /// The current number of this item that is stored.
@@ -71,11 +83,10 @@ public class ItemStack : System.IComparable< ItemStack >
             return _Quantity;
         }
         set {
-            _Quantity = Mathf.Clamp( value, 0, Capacity );
+            _Quantity = value;
         }
     }
 
-    [ SerializeField ]
     private int _Capacity;
     /// <summary>
     /// The maximum number of this item that can be stored.
@@ -83,7 +94,7 @@ public class ItemStack : System.IComparable< ItemStack >
     public int Capacity {
         get {
             if ( _InheritCapacity )
-                return _ItemType.StackCapacity;
+                return _Item.StackCapacity;
             else
                 return _Capacity;
         }

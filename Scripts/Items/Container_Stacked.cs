@@ -139,7 +139,7 @@ public class Container_Stacked : Container
 
         if (
             !item.Stackable ||
-            StackType > StackLimit.None ||
+            StackType == StackLimit.None ||
             entry == null
         ) {
             entry = CreateEmptyStack( item );
@@ -168,7 +168,13 @@ public class Container_Stacked : Container
 
     public ItemStack CreateEmptyStack( Item item )
     {
+        print( "Item: " + item.DisplayName );
+
         ItemStack entry = new ItemStack( item, 0 );
+    
+        // WTF is going on. Creating the ItemStack should set the item, but printing it immediately afterwards says it's null.
+
+        print( "Stack: " + new ItemStack( item, 0 ).Item.DisplayName );
         _Entries.Add( entry );
 
         return entry;
@@ -218,6 +224,7 @@ public class Container_Stacked : Container
                 return stack;
         }
 
+
         return null;
     }
 
@@ -230,6 +237,7 @@ public class Container_Stacked : Container
             if ( stack.Item == item )
                 result.Add( stack );
         }
+
 
         return result.ToArray();
     }
