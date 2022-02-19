@@ -9,13 +9,31 @@ public class Container_Stacked : Container
 {
     public override int Count {
         get {
-            return 0;
+            return _Entries.Count;
         }
     }
 
-    public int CountEntries {
+    public int CountAllItems {
         get {
-            return _Entries.Count;
+            int quantity = 0;
+            foreach ( ItemStack entry in _Entries )
+            {
+                quantity += entry.Quantity;
+            }
+
+            return quantity;
+        }
+    }
+
+    public override bool IsEmpty {
+        get {
+            foreach ( ItemStack entry in _Entries )
+            {
+                if ( !entry.IsEmpty )
+                    return false;
+            }
+
+            return true;
         }
     }
 
@@ -69,31 +87,65 @@ public class Container_Stacked : Container
         _Entries.Clear();
     }
 
-    protected override bool AddInternal( Item item )
+    public void ClearPlaceholderFor( Item item )
     {
-        if ( item.Stackable )
+        foreach ( ItemStack entry in _Entries )
         {
-            ItemStack entry = FindAvailableEntryFor( item );
-            if ( entry == null || ( entry.IsFull && StackType == StackLimit.Multi ) )
+            if ( item == entry.Item )
             {
-                entry = new ItemStack( item, 0 );
-                _Entries.Add( entry );
+                _Entries.Remove( entry );
+                break;
             }
-            else if ( entry.IsFull )
-            {
-                return false;
-            }
-
-            entry.Quantity++;
-
-            return true;
         }
-        else
+    }
+    public void ClearAllPlaceholders()
+    {
+        List< ItemStack > toRemove = new List< ItemStack >();
+        foreach ( ItemStack entry in _Entries )
         {
-            _Entries.Add( new ItemStack( item ) );
-
-            return true;
+            if ( entry.IsEmpty )
+                toRemove.Add( entry );
         }
+
+        foreach ( ItemStack entry in toRemove )
+        {
+            _Entries.Remove( entry );
+        }
+    }
+
+    public override bool CanAdd( Item item )
+    {
+        switch ( StackType )
+        {
+            case StackLimit.Single:
+                if ( FindAvailableEntryFor( item ) != null )
+                    return true;
+                if ( QuantityOfEntries( item ) == 1 )
+                    return false;
+                break;
+            case StackLimit.SingleUnlimited:
+            case StackLimit.Multi:
+                if ( FindAvailableEntryFor( item ) != null )
+                    return true;
+                break;
+        }
+
+        return base.CanAdd( item );
+    }
+
+    protected override void AddInternal( Item item )
+    {
+        ItemStack entry = FindAvailableEntryFor( item );
+
+        if (
+            !item.Stackable ||
+            StackType > StackLimit.None ||
+            entry == null
+        ) {
+            entry = CreateEmptyStack( item );
+        }
+
+        entry.Quantity++;
     }
     protected override bool RemoveInternal( Item item )
     {
@@ -103,7 +155,7 @@ public class Container_Stacked : Container
         {
             entry.Quantity--;
 
-            if ( !KeepEmptyEntries && entry.IsEmpty )
+            if ( entry.IsEmpty && ( !EnablePlaceholderStacks || QuantityOfEntries( item ) > 1 ) )
             {
                 _Entries.Remove( entry );
             }
@@ -114,10 +166,18 @@ public class Container_Stacked : Container
         return false;
     }
 
+    public ItemStack CreateEmptyStack( Item item )
+    {
+        ItemStack entry = new ItemStack( item, 0 );
+        _Entries.Add( entry );
+
+        return entry;
+    }
+
     private enum StackLimit {
         [ Tooltip( "Stacking is not allowed. Treat this as a Simple container." ) ]
         None,
-        [ Tooltip( "Stack items into one entry. If the upper limit of the Item's StackLimit is reached, no more Items of that type can be added. E.g. Monster Hunter" ) ]
+        [ Tooltip( "Stack items into one entry. If the upper limit of the Item's StackLimit is reached, no more Items of that type can be added, even if there is more space in this container. E.g. Monster Hunter" ) ]
         Single,
         [ Tooltip( "Stack items into one entry, but there is no limit to how many items can be added to this one entry. E.g. The Legend of Zelda: Breath of the Wild" ) ]
         SingleUnlimited,
@@ -126,7 +186,7 @@ public class Container_Stacked : Container
     }
 
     [ Tooltip( "If enabled, item stacks are not removed when they are emptied. This allows item stacks to persist as placeholders until more items are added." ) ]
-    public bool KeepEmptyEntries = false;
+    public bool EnablePlaceholderStacks = false;
     [ Tooltip( "Defines how stacks are stored." ) ] [ SerializeField ]
     private StackLimit StackType = StackLimit.Multi;
 
@@ -144,8 +204,6 @@ public class Container_Stacked : Container
         {
             if ( !stack.IsFull )
                 return stack;
-            else if ( StackType != StackLimit.Multi )
-                break;
         }
 
         return null;

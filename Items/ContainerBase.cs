@@ -12,10 +12,10 @@ public abstract class ContainerBase< Type > : MonoBehaviour
     public abstract int Count { get; }
     public abstract bool Contains( Type item );
     public abstract int QuantityOf( Type item );
-    
-    public abstract void Clear(); 
 
-    protected abstract bool AddInternal( Type item );
+    public abstract void Clear();
+
+    protected abstract void AddInternal( Type item );
     protected abstract bool RemoveInternal( Type item );
 
     public virtual bool CanAdd( Type item )
@@ -38,13 +38,13 @@ public abstract class ContainerBase< Type > : MonoBehaviour
         }
     }
 
-    public bool IsEmpty {
+    public virtual bool IsEmpty {
         get {
             return Count <= 0;
         }
     }
 
-    public bool IsFull {
+    public virtual bool IsFull {
         get {
             return Capacity >= 0 && Count >= Capacity;
         }

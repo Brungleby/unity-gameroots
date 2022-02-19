@@ -3,7 +3,7 @@ using UnityEngine;
 /// <summary>
 /// A basic listing for representing items in stacked containers.
 /// </summary>
-public class ItemStack : System.IComparable<ItemStack>
+public class ItemStack : System.IComparable< ItemStack >
 {
     public int CompareTo( ItemStack other )
     {
@@ -46,7 +46,7 @@ public class ItemStack : System.IComparable<ItemStack>
     }
     public bool IsFull {
         get {
-            return Quantity >= Capacity;
+            return Capacity >= 0 && Quantity >= Capacity;
         }
     }
 
@@ -83,9 +83,9 @@ public class ItemStack : System.IComparable<ItemStack>
     public int Capacity {
         get {
             if ( _InheritCapacity )
-                return _ItemType.Capacity;
+                return _ItemType.StackCapacity;
             else
-                return _Capacity > 0 ? _Capacity : int.MaxValue;
+                return _Capacity;
         }
     }
 }

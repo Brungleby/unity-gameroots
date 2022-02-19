@@ -81,10 +81,10 @@ public class Item : ScriptableObject, System.IComparable<Item>
     [ Tooltip( "Whether or not this Item can be consolidated into a stack of similar types. In other words, is it NOT unique?" ) ]
     public bool Stackable = true;
     [ Min( 0 ) ] [ Tooltip( "How many of this item can be stored into a single item listing. If left unspecified at 0, there will be no limit." ) ]
-    public static int _Capacity = 0;
-    public int Capacity {
+    public static int _StackCapacity = 0;
+    public int StackCapacity {
         get {
-            return _Capacity > 0 ? _Capacity : int.MaxValue;
+            return _StackCapacity > 0 ? _StackCapacity : int.MaxValue;
         }
     }
     [ Tooltip( "If a container is auto-sorted, this is the order in which this item will be sorted. Smaller numbers are sorted first." ) ]

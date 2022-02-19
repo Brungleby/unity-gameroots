@@ -36,14 +36,9 @@ public class Container_Simple : Container
         _Contents.Clear();
     }
 
-    protected override bool AddInternal( Item item )
+    protected override void AddInternal( Item item )
     {
-        try {
-            _Contents.Add( item );
-            return true;
-        } catch {
-            return false;
-        }
+        _Contents.Add( item );
     }
     protected override bool RemoveInternal( Item item )
     {
