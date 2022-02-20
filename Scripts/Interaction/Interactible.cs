@@ -46,7 +46,7 @@ public class Interactible : MonoBehaviour
         if ( CheckInteraction( instigator, actionType ) )
         {
             // Create a new Interaction. This will store the involved "parties" and describe what they did and the result.
-            Interaction interaction = new Interaction( instigator, this, actionType );
+            Interaction interaction = new Interaction( instigator, this );
 
             // Execute the Interaction. The Interact function should validate
             interaction = Interact( interaction );
