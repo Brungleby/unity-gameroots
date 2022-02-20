@@ -37,7 +37,7 @@ public class Pickup : Interactible
         }
         set {
             _Item = value;
-            Awake();
+            RefreshPrefab();
         }
     }
 
@@ -58,7 +58,10 @@ public class Pickup : Interactible
 
     void RefreshPrefab()
     {
-        Destroy( _PreviewObject );
-        _PreviewObject = Instantiate( Item.Prefab, SocketTransform );
+        if ( _PreviewObject )
+            Destroy( _PreviewObject );
+
+        if ( Item )
+            _PreviewObject = Instantiate( Item.Prefab, SocketTransform );
     }
 }
