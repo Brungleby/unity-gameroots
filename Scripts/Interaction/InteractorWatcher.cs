@@ -14,7 +14,7 @@ public abstract class InteractorWatcher : MonoBehaviour
         }
     }
 
-    private Interactible _LastSeenInteractible = null;
+    // private Interactible _LastSeenInteractible = null;
 
     // Update is called once per frame
     private void Update()

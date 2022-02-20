@@ -67,7 +67,7 @@ public class Interactor : MonoBehaviour
             OnInteractIgnored.Invoke();
     }
 
-    public void ReceiveInput( InputAction.CallbackContext context )
+    public virtual void ReceiveInput( InputAction.CallbackContext context )
     {
         if ( context.started )
             TryInteract();
