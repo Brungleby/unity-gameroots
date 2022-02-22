@@ -22,10 +22,19 @@ public class Interaction
         }
     }
 
-    public Interaction( Interactor instigator, Interactible effector )
+    public Interaction( Interactor instigator, Interactible effector, bool result, string message )
     {
         Instigator = instigator;
         Effector = effector;
+        Result = result;
+        Message = message;
+    }
+    public Interaction( Interactor instigator, Interactible effector, bool result )
+    {
+        Instigator = instigator;
+        Effector = effector;
+        Result = result;
+        Message = "";
     }
 
     // public string ActionType;
@@ -59,25 +68,25 @@ public class Interaction
     //     Message = "Interaction failed (unknown).";
     // }
 
-    public Interaction Complete( string message )
-    {
-        Result = true;
-        Message = message;
-        return this;
-    }
-    public Interaction Complete()
-    {
-        return Complete( "Success" );
-    }
+    // public Interaction Complete( string message )
+    // {
+    //     Result = true;
+    //     Message = message;
+    //     return this;
+    // }
+    // public Interaction Complete()
+    // {
+    //     return Complete( "Success" );
+    // }
 
-    public Interaction Abort( string message )
-    {
-        Result = false;
-        Message = message;
-        return this;
-    }
-    public Interaction Abort()
-    {
-        return Abort( "Failure" );
-    }
+    // public Interaction Abort( string message )
+    // {
+    //     Result = false;
+    //     Message = message;
+    //     return this;
+    // }
+    // public Interaction Abort()
+    // {
+    //     return Abort( "Failure" );
+    // }
 }

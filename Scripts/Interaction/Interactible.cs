@@ -27,29 +27,26 @@ public class Interactible : MonoBehaviour
     /// <returns>
     /// True if the Interaction can be attempted, not necessarily if it will succeed. False if the Interaction should not be attempted.
     /// </returns>
-    protected virtual bool CheckInteraction( Interactor instigator, string actionType )
+    protected virtual bool CheckInteraction( Interactor instigator )
     {
-        return IsActionAvailable( actionType );
+        return IsActionAvailable( instigator.Action );
     }
 
     /// <summary>
     /// This is the interaction that actually happens. If the interaction succeeds, return interaction.Complete(); otherwise action.Abort();
     /// </summary>
-    protected virtual Interaction Interact( Interaction interaction )
+    protected virtual Interaction Interact( Interactor instigator )
     {
-        return interaction.Complete();
+        return new Interaction( instigator, this, false, "Interaction not implemented." );
     }
 
-    public Interaction ReceiveInteraction( Interactor instigator, string actionType )
+    public Interaction ReceiveInteraction( Interactor instigator )
     {
         // When an interactor INSTIGATES this function, first check to make sure that this Interactible can perform the input actionType. If it can't, treat it as if nothing happened.
-        if ( CheckInteraction( instigator, actionType ) )
+        if ( CheckInteraction( instigator ) )
         {
-            // Create a new Interaction. This will store the involved "parties" and describe what they did and the result.
-            Interaction interaction = new Interaction( instigator, this );
-
             // Execute the Interaction. The Interact function should validate
-            interaction = Interact( interaction );
+            Interaction interaction = Interact( instigator );
 
             if ( interaction.Result )
                 OnInteractSuccess.Invoke( interaction );
@@ -71,5 +68,14 @@ public class Interactible : MonoBehaviour
         }
 
         return false;
+    }
+
+    protected Interaction SuccessInteraction( Interactor i, string message = "" )
+    {
+        return new Interaction( i, this, true, message );
+    }
+    protected Interaction FailureInteraction( Interactor i, string message = "" )
+    {
+        return new Interaction( i, this, false, message );
     }
 }

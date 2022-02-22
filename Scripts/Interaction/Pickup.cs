@@ -4,25 +4,25 @@ using UnityEngine;
 
 public class Pickup : Interactible
 {
-    protected override bool CheckInteraction( Interactor instigator, string actionType )
+    protected override bool CheckInteraction( Interactor instigator )
     {
         return
-            base.CheckInteraction( instigator, actionType ) &&
+            base.CheckInteraction( instigator ) &&
             instigator.GetType() == typeof( Interactor_Pickup );
     }
 
-    protected override Interaction Interact( Interaction interaction )
+    protected override Interaction Interact( Interactor instigator )
     {
-        Interactor_Pickup instigator = (Interactor_Pickup) interaction.Instigator;
+        Interactor_Pickup instigatorPickup = (Interactor_Pickup) instigator;
         
-        bool success = instigator.Deposit.Add( Item );
+        bool success = instigatorPickup.Deposit.Add( Item );
 
         if ( !success )
-            return interaction.Abort( "Deposit container is full." );
+            return FailureInteraction( instigator, "Deposit container is full." );
 
         Destroy( gameObject );
 
-        return interaction.Complete();
+        return SuccessInteraction( instigator );
     }
 
     public Transform SocketTransform;

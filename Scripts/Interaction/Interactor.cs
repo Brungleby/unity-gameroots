@@ -13,7 +13,7 @@ public class Interactor : MonoBehaviour
     public InteractibleFinder Sensor;
 
     public string ActionName = "Interact";
-    public string ActionType = "Default";
+    public string Action = "Default";
 
     [ SerializeField ]
     private UnityEvent< Interaction > OnInteractSuccess;
@@ -24,7 +24,7 @@ public class Interactor : MonoBehaviour
 
     public Interactible CurrentInteractible {
         get {
-            return Sensor.GetInteractible( ActionType );
+            return Sensor.GetInteractible( Action );
         }
     }
 
@@ -50,7 +50,7 @@ public class Interactor : MonoBehaviour
 
     public void InteractWith( Interactible other )
     {
-        Interaction interaction = other.ReceiveInteraction( this, ActionType );
+        Interaction interaction = other.ReceiveInteraction( this );
         
         if ( interaction.Result )
             OnInteractSuccess.Invoke( interaction );
