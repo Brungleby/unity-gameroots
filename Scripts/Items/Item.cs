@@ -135,4 +135,20 @@ public class Item : ScriptableObject, System.IComparable<Item>
     {
         return Mathf.Abs( quantity ) == 1 ? DisplayName : PluralName;
     }
+
+    public void Use( GameObject user )
+    {
+        if ( IsUsableFor( user ) )
+            OnUse( user );
+    }
+    public bool IsUsableFor( GameObject user )
+    {
+        return Usable && CanUseFor( user );
+    }
+
+    protected virtual bool CanUseFor( GameObject user )
+    {
+        return false;
+    }
+    protected virtual void OnUse( GameObject user ) {}
 }

@@ -7,7 +7,7 @@ using UnityEngine.Events;
 /// <summary>
 /// This component can receive input to trigger interactions with Interactibles (found using an attached InteractibleFinder). You will need to use one Interactor per type of Interaction you would like to implement, denoted by the ActionType.
 /// </summary>
-public class Interactor : MonoBehaviour, IInteractor
+public class Interactor : MonoBehaviour
 {
     public Interactible GetInteractible {
         get {
