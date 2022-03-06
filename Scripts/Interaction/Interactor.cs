@@ -7,45 +7,17 @@ using UnityEngine.Events;
 /// <summary>
 /// This component can receive input to trigger interactions with Interactibles (found using an attached InteractibleFinder). You will need to use one Interactor per type of Interaction you would like to implement, denoted by the ActionType.
 /// </summary>
-public class Interactor : MonoBehaviour
+public class Interactor : MonoBehaviour, IInteractor
 {
-    [ SerializeField ]
-    public InteractibleFinder Sensor;
-
-    public string ActionName = "Interact";
-    public string Action = "Default";
-
-    [ SerializeField ]
-    private UnityEvent< Interaction > OnInteractSuccess;
-    [ SerializeField ]
-    private UnityEvent< Interaction > OnInteractFailure;
-    [ SerializeField ]
-    private UnityEvent OnInteractIgnored;
-
-    public Interactible CurrentInteractible {
+    public Interactible GetInteractible {
         get {
             return Sensor.GetInteractible( Action );
         }
     }
-
-    public virtual string GetTooltip( Interactible interactible )
-    {
-        if ( interactible != null )
-        {
-            return ActionName + " " + interactible.Tooltip;
-        }
-
-        return "";
-    }
+    
     public string GetTooltip()
     {
-        return GetTooltip( CurrentInteractible );
-    }
-
-    protected virtual void Awake()
-    {
-        if ( Sensor == null )
-            Sensor = GetComponent< InteractibleFinder >();
+        return GetTooltip( GetInteractible );
     }
 
     public void InteractWith( Interactible other )
@@ -58,9 +30,40 @@ public class Interactor : MonoBehaviour
             OnInteractFailure.Invoke( interaction );
     }
 
+    [ SerializeField ]
+    public InteractibleFinder Sensor;
+
+    public string ActionName = "Interact";
+    public string Action = "Default";
+
+    public bool AnimationDrivenEvent = false;
+
+    [ SerializeField ]
+    private UnityEvent< Interaction > OnInteractSuccess;
+    [ SerializeField ]
+    private UnityEvent< Interaction > OnInteractFailure;
+    [ SerializeField ]
+    private UnityEvent OnInteractIgnored;
+
+    public virtual string GetTooltip( Interactible interactible )
+    {
+        if ( interactible != null )
+        {
+            return ActionName + " " + interactible.Tooltip;
+        }
+
+        return "";
+    }
+
+    protected virtual void Awake()
+    {
+        if ( Sensor == null )
+            Sensor = GetComponent< InteractibleFinder >();
+    }
+
     public void TryInteract()
     {
-        Interactible focus = CurrentInteractible;
+        Interactible focus = GetInteractible;
         if ( focus != null )
             InteractWith( focus );
         else
