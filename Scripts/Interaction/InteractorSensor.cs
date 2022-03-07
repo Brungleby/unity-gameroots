@@ -5,7 +5,6 @@ using UnityEngine;
 /// <summary>
 /// This is a component that senses interactibles in the world for an Interactor to use.
 /// </summary>
-[ RequireComponent( typeof( Interactor ) ) ]
 public abstract class InteractorSensor : MonoBehaviour
 {
     public abstract Interactible GetInteractible();

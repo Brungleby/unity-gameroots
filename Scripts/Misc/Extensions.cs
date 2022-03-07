@@ -25,6 +25,17 @@ public static class Extensions
         return result;
     }
 
+    public static bool Contains<T>( this T[] array, T item )
+    {
+        for ( int i = 0; i < array.Length; i++ )
+        {
+            if ( item.Equals( array[i] ) )
+                return true;
+        }
+
+        return false;
+    }
+
     public static string AllToString( this ICollection collection, int limit = -1 )
     {
         string result = "[ ";

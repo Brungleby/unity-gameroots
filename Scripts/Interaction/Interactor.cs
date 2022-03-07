@@ -2,14 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.Events;
 
 /// <summary>
 /// This is a component that can interact with Interactibles found in the world. 
 /// </summary>
-[ RequireComponent( typeof( InteractorSensor ) ) ]
 public class Interactor : MonoBehaviour
 {
+    public string Action = "Default";
+
     [ SerializeField ]
     private InteractorSensor _Sensor;
     public InteractorSensor Sensor {
@@ -26,7 +26,7 @@ public class Interactor : MonoBehaviour
         other.ReceiveInteraction( this );
     }
 
-    public void TryInteract()
+    public virtual void TryInteract()
     {
         if ( Sensor.IsFocused )
             InteractWith( Sensor.FocusedInteractible );
@@ -41,6 +41,6 @@ public class Interactor : MonoBehaviour
     protected virtual void Awake()
     {
         if ( Sensor == null )
-            Sensor = GetComponent< InteractorSensor >();
+            Sensor = GetComponentInParent< InteractorSensor >();
     }
 }
