@@ -6,21 +6,22 @@ using UnityEngine.Events;
 /// <summary>
 /// This Sensor performs a Sphere cast ( line cast with some width ) to search for Interactibles. Attach this to a 1st Person camera and it will return with Interactibles directly in the center of the view!
 /// </summary>
-public class InteractibleSensor_Linear : InteractibleSensor
+public class InteractorSensor_Linear : InteractorSensor
 {
-    public override Interactible[] FindInteractibles()
+    public override Interactible GetInteractible()
     {
-        RaycastHit hit = PerformCast(); 
-        bool success = hit.collider != null;
-        
-        if ( success )
-            return FindInteractiblesIn( hit.transform );
+        RaycastHit hit = PerformCast();
 
-        return new Interactible[ 0 ];
+        if ( hit.collider != null )
+        {
+            return hit.collider.GetComponent< Interactible >();
+        }
+
+        return null;
     }
 
     [ Min( 0f ) ]
-    public float SensorRadius = 0.1f;
+    public float SensorRadius = 0f;
 
     public RaycastHit PerformCast()
     {
