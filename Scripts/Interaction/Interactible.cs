@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Interactors can interact with Interactibles.
+/// When an Interactor with a matching Action Interacts with this Interactible, this Interactible's script will trigger.
 /// </summary>
 public class Interactible : MonoBehaviour
 {
@@ -11,10 +11,10 @@ public class Interactible : MonoBehaviour
 
     public virtual bool CheckUser( Interactor user )
     {
-        return true;
+        return IsActionAvailable( user );
     }
 
-    public virtual void Interact( Interactor user )
+    public virtual void InteractWith( Interactor user )
     {
         
     }
@@ -22,7 +22,7 @@ public class Interactible : MonoBehaviour
     public void ReceiveInteraction( Interactor user )
     {
         if ( CheckUser( user ) && IsActionAvailable( user ) )
-            Interact( user );
+            InteractWith( user );
     }
 
     public bool IsActionAvailable( string action )

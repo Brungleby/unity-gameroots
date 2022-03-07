@@ -14,7 +14,7 @@ public class InteractorSensor_Linear : InteractorSensor
 
         if ( hit.collider != null )
         {
-            return hit.collider.GetComponent< Interactible >();
+            return hit.collider.GetComponentInParent< Interactible >();
         }
 
         return null;
