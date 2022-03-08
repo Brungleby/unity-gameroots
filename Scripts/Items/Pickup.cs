@@ -8,8 +8,6 @@ public class Pickup : Interactible
     {
         Container container = user.GetComponentInParent< Container >();
 
-        print( container );
-
         if ( container == null )
             return;
 
