@@ -47,13 +47,24 @@ public class Cookie : MonoBehaviour
             return _value;
         }
         set {
-            _value = Mathf.Clamp( value, 0f, Maximum );
+            _value = Mathf.Clamp( value, MinimumValue, MaximumValue );
+        }
+    }
+
+    [ SerializeField ]
+    private float _minimum = 0f;
+    public float MinimumValue {
+        get {
+            return _minimum;
+        }
+        set {
+            _minimum = value;
         }
     }
 
     [ SerializeField ]
     private float _maximum;
-    public float Maximum {
+    public float MaximumValue {
         get {
             return _maximum;
         }
@@ -67,6 +78,15 @@ public class Cookie : MonoBehaviour
     public float Velocity {
         get {
             return _lastVelocity;
+        }
+    }
+
+    public float Alpha {
+        get {
+            return Mathf.InverseLerp( MinimumValue, MaximumValue, Value );
+        }
+        set {
+            Value = Mathf.LerpUnclamped( MinimumValue, MaximumValue, value );
         }
     }
 

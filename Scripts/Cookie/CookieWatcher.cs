@@ -8,7 +8,7 @@ public abstract class CookieWatcher : MonoBehaviour
 
     public float Alpha {
         get {
-            return Reference.Value / Reference.Maximum;
+            return Reference.Alpha;
         }
     }
 
